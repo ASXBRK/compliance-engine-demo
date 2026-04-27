@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Compliance Engine — Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      max-width: 720px;
+      margin: 60px auto;
+      padding: 0 24px;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #666; margin-top: 0; }
+    .demos { margin-top: 40px; }
+    .demo-link {
+      display: block;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #1a1a1a;
+      transition: all 0.15s;
+    }
+    .demo-link:hover {
+      border-color: #2563eb;
+      background: #f8fafc;
+    }
+    .demo-link h3 { margin: 0 0 4px; }
+    .demo-link p { margin: 0; color: #666; font-size: 14px; }
+    .footer { margin-top: 60px; color: #888; font-size: 14px; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Compliance Engine</h1>
+  <p class="subtitle">AI-assisted compliance review for Australian financial advice meetings.</p>
+
+  <p>The engine reads adviser-client meeting transcripts and surfaces compliance issues across factual accuracy, conversation flow, regulatory rule matches, and Code of Ethics standards. Each flag includes specific transcript quotes and regulatory citations.</p>
+
+  <p>Below are reviews of synthetic test transcripts. Hover over highlighted moments for the issue summary; click for the full breakdown including all engaged detectors and regulatory references.</p>
+
+  <div class="demos">
+    <a class="demo-link" href="meeting4.html">
+      <h3>Meeting 4 — Stress Test</h3>
+      <p>A deliberately problematic annual review. Multiple high-severity compliance issues across illegal strategies, conflicted remuneration, third-party advice, and Code of Ethics breaches.</p>
+    </a>
+    <a class="demo-link" href="meeting5.html">
+      <h3>Meeting 5 — Factual Stress</h3>
+      <p>Independently generated transcript focused on factual errors. Tests the engine's ability to catch wrong figures and stale thresholds.</p>
+    </a>
+    <a class="demo-link" href="meeting6.html">
+      <h3>Meeting 6 — Clean Control</h3>
+      <p>A competent annual review with zero planted compliance issues. Demonstrates that the engine is invisible when adviser conduct is sound.</p>
+    </a>
+    <a class="demo-link" href="meeting7.html">
+      <h3>Meeting 7 — SMSF Strategy</h3>
+      <p>SMSF-specific compliance scenarios including LRBA improvements and in-house asset rules.</p>
+    </a>
+    <a class="demo-link" href="meeting8.html">
+      <h3>Meeting 8 — Retirement & Aged Care</h3>
+      <p>Retirement income strategy and aged care planning with means-testing and third-party advice issues.</p>
+    </a>
+  </div>
+
+  <p class="footer">All transcripts are synthetic, generated for demonstration purposes. The engine itself is a private project; this site shows engine output only.</p>
+</body>
+</html>

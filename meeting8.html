@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compliance Review — meeting8</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --high-bg: #fee2e2;
+  --high-border: #dc2626;
+  --high-bg-hover: #fecaca;
+  --med-bg: #ffedd5;
+  --med-border: #ea580c;
+  --med-bg-hover: #fed7aa;
+  --low-bg: #fef3c7;
+  --low-border: #ca8a04;
+  --low-bg-hover: #fde68a;
+  --selected-shadow: 0 0 0 2px #1f2937;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+header.page-header {
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header.page-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.summary-stats {
+  font-size: 13px;
+  color: var(--muted);
+}
+.summary-stats .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.summary-stats .pill.high { background: var(--high-bg); color: var(--high-border); }
+.summary-stats .pill.medium { background: var(--med-bg); color: var(--med-border); }
+.summary-stats .pill.low { background: var(--low-bg); color: var(--low-border); }
+main.layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  height: calc(100vh - 70px);
+}
+.transcript-pane, .sidebar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+.transcript-pane pre {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  color: var(--text);
+}
+.issue-highlight {
+  border-radius: 3px;
+  padding: 1px 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.1s ease;
+}
+.issue-highlight.severity-high { background: var(--high-bg); border-bottom-color: var(--high-border); }
+.issue-highlight.severity-medium { background: var(--med-bg); border-bottom-color: var(--med-border); }
+.issue-highlight.severity-low { background: var(--low-bg); border-bottom-color: var(--low-border); }
+.issue-highlight.severity-high:hover { background: var(--high-bg-hover); }
+.issue-highlight.severity-medium:hover { background: var(--med-bg-hover); }
+.issue-highlight.severity-low:hover { background: var(--low-bg-hover); }
+.issue-highlight.selected {
+  box-shadow: var(--selected-shadow);
+  border-bottom-width: 3px;
+}
+.sidebar h2 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.issue-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+.issue-card:hover { background: #f9fafb; }
+.issue-card.selected { box-shadow: var(--selected-shadow); }
+.issue-card.severity-high { border-left: 4px solid var(--high-border); }
+.issue-card.severity-medium { border-left: 4px solid var(--med-border); }
+.issue-card.severity-low { border-left: 4px solid var(--low-border); }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.severity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.severity-badge.severity-high { background: var(--high-bg); color: var(--high-border); }
+.severity-badge.severity-medium { background: var(--med-bg); color: var(--med-border); }
+.severity-badge.severity-low { background: var(--low-bg); color: var(--low-border); }
+.card-summary {
+  font-weight: 500;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.card-details {
+  padding: 0 14px 14px 14px;
+  display: none;
+  border-top: 1px solid var(--border);
+  margin-top: 0;
+}
+.issue-card.expanded .card-details {
+  display: block;
+  padding-top: 12px;
+}
+.card-quote {
+  font-style: italic;
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.card-section { margin-bottom: 10px; font-size: 13px; }
+.card-section strong { color: var(--text); }
+.findings-list, .refs-list { margin: 6px 0 0 0; padding-left: 18px; font-size: 12px; }
+.findings-list li { margin-bottom: 6px; }
+.finding-det {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.refs-list li { margin-bottom: 8px; }
+.ref-line { font-size: 12px; }
+.ref-meta { color: var(--muted); font-size: 11px; }
+.ref-excerpt { color: var(--muted); font-size: 11px; margin-top: 2px; padding-left: 6px; border-left: 2px solid var(--border); }
+.not-found-note { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state .check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.empty-state .empty-msg {
+  font-size: 14px;
+  color: var(--text);
+  max-width: 300px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <h1>Compliance Review: meeting8</h1>
+  <div class="summary-stats">Total: <strong>7</strong> &nbsp;|&nbsp; <span class="pill high">High 2</span><span class="pill medium">Medium 3</span><span class="pill low">Low 2</span></div>
+</header>
+<main class="layout">
+  <section class="transcript-pane"><pre># Meeting 8 — Retirement and Aged Care Planning
+
+**Date:** Wednesday, 15 April 2026
+**Attendees:** Tom Henderson (Senior Financial Adviser), David Whitfield (Client), Susan Whitfield (Client)
+**Duration:** 47 minutes
+**Location:** Subiaco office, meeting room 2
+
+---
+
+Tom: David, Susan, come on in. Sorry — running about three minutes late, the previous one ran over.
+David: No drama, mate. We were just admiring the new fit-out in reception.
+Susan: It&#x27;s lovely. The artwork is new, isn&#x27;t it?
+Tom: Yeah, the principal&#x27;s wife is into local artists, so we&#x27;ve sort of inherited the rotation. Anyway. Coffee, tea, water?
+David: Just water for me, thanks.
+Susan: Same, thank you.
+Tom: Right. So — last time we caught up was, what, late January? Just before David finished up?
+David: Yeah, last day was the 14th of February. Bit of a Valentine&#x27;s Day gift to myself.
+Susan: He&#x27;s been impossible since.
+David: I have not.
+Susan: He has. He reorganised the garage. Twice.
+Tom: Ha. The first six months — that&#x27;s the adjustment period, everyone goes through it. Some people start a vegetable patch. Some people drive their partners spare.
+David: Pick a lane, basically.
+Tom: Pretty much. Okay, before we dive in — I want to confirm a few things have or haven&#x27;t changed since January. The house is still the Mt Lawley place, no change there?
+David: Same.
+Tom: Susan, you&#x27;re still at the school?
+Susan: Three days a week now. I dropped from four at the end of term one. The thinking was sort of to ease into things alongside David.
+Tom: <span class="issue-highlight severity-low" data-issue-id="6" title="LOW — Adviser had incorrect information about Susan&#x27;s current age recorded in file" onclick="selectIssue(6)">And you&#x27;re, what, sixty-four now?</span>
+Susan: Sixty-four in November. Still sixty-three for another six, seven months.
+Tom: Right, sorry — I had it in my head you were already sixty-four. Easy mistake. So pension age is still a way off for you.
+Susan: Yes.
+Tom: Okay. The other thing I wanted to flag at the top — David, you mentioned on the phone last week that your mum&#x27;s situation has changed?
+David: Yeah, that&#x27;s the big one really. Mum had another fall about three weeks ago, and the hospital have basically said she can&#x27;t go back to the unit on her own. So we&#x27;re looking at residential care.
+Tom: Sorry to hear that. How&#x27;s she taking it?
+David: Honestly, she&#x27;s relieved. She&#x27;s been scared in that unit for about two years and just hasn&#x27;t said anything.
+Susan: Margaret is a tough old bird. She&#x27;s not going to be the one crying about it.
+David: No, that&#x27;ll be me.
+Tom: Fair enough. Okay, so I want to come back to your mum, because there&#x27;s a fair bit there. Let me just lay out what I had on the agenda and you tell me if it still works. So, one — where we land on your retirement income strategy now that David&#x27;s stopped work. Two — Age Pension, when it kicks in, what you can do between now and then. Three — your mum&#x27;s care, and what your role is in that. And then four — anything on the estate planning side that flows out of all of it.
+David: That sounds about right.
+Susan: Can we talk about the downsizer thing too? My sister was on at me at Easter about it.
+Tom: Yes — I&#x27;ll fold that in. Good. Right, let&#x27;s start with the retirement income piece, because everything else sort of stacks on top of it.
+David: Fire away.
+Tom: So the position I&#x27;m looking at — David, you&#x27;ve got around eight-fifty in super, all in accumulation at the moment because we haven&#x27;t done anything since you stopped. Susan, you&#x27;re at four-twenty roughly, still contributing. Joint outside super is the share portfolio, about one-eighty, and then cash sitting at eighty.
+David: Cash is closer to seventy-five now. We had the new gutters done.
+Tom: Noted. So the question is — what do we do with David&#x27;s eight-fifty?
+David: Right.
+Tom: My recommendation, and I want to walk you through the logic, is we move the bulk of it into an account-based pension. You&#x27;re sixty-six, you&#x27;ve met a condition of release by retiring after preservation age, so the whole lot is unrestricted. Once it&#x27;s in pension phase, no tax on the earnings, and any drawdowns to you are tax-free because you&#x27;re over sixty.
+David: Okay.
+Tom: The transfer balance cap is the cap on how much you can have in pension phase. From the first of July last year that moved to two million dollars. So you&#x27;ve got plenty of room — your eight-fifty is well under.
+Susan: So why wouldn&#x27;t we put the whole lot in?
+Tom: We probably will. The only reason to leave a slice in accumulation is if there&#x27;s a contribution coming or some other planning reason. In your case, David, I&#x27;d say move close to all of it. Maybe leave twenty in accumulation as a holding account — it doesn&#x27;t really matter mathematically, but some people like having a separate bucket they can recontribute to.
+David: Sure.
+Tom: The minimum drawdown — <span class="issue-highlight severity-medium" data-issue-id="3" title="MEDIUM — Adviser stated minimum pension drawdown rate of 6% for age 67" onclick="selectIssue(3)">at sixty-seven, which you&#x27;ll be in October, the legislated minimum is six per cent</span>. So on eight-fifty, that&#x27;s about fifty-one thousand a year you&#x27;d have to take out as a minimum.
+David: Whether I want to or not.
+Tom: Whether you want to or not. You can always put it back somewhere else if you don&#x27;t spend it — re-contribute, invest outside.
+Susan: Six per cent feels like a lot.
+Tom: It scales up with age, so it&#x27;s higher again at seventy-five and so on. The intent is that super gets drawn down across retirement, not preserved.
+David: Right.
+Tom: Now, against that, your spending — you said about ninety to a hundred a year all up?
+Susan: Ninety, on a normal year. We&#x27;d want a buffer for trips.
+Tom: So roughly twenty of that comes from Susan&#x27;s wage at the moment, the ABP gives you about fifty before drawdowns even need topping up, and then there&#x27;s the share portfolio income — what was that running at, four per cent?
+David: About that.
+Tom: So you&#x27;re comfortably covered. Even before any Age Pension kicks in down the track.
+David: Okay.
+Tom: Now — Susan, while we&#x27;re here. You&#x27;re still in accumulation. Sixty-three, three days a week, salary around what, sixty-five?
+Susan: Sixty-three.
+Tom: Sixty-three. Are you doing salary sacrifice at the moment?
+Susan: A bit. Probably should do more.
+Tom: Yeah, look — there&#x27;s a case to push that up. You&#x27;ve got the room in the cap, your marginal rate&#x27;s higher than the contributions tax, and we get the secondary benefit that anything in your super is invisible to the means test until you hit Age Pension age yourself.
+Susan: Sorry — say that again?
+Tom: Super in accumulation phase, owned by a person under Age Pension age, doesn&#x27;t count for either of you on Centrelink&#x27;s books.
+David: Wait, does that apply to us already?
+Tom: It applies to Susan&#x27;s super already, yes. As long as Susan&#x27;s under sixty-seven and the money is in accumulation, Centrelink can&#x27;t see it. Once she hits sixty-seven, all of it counts — both the assets test and deemed income.
+Susan: Huh.
+Tom: It&#x27;s a perfectly legitimate planning point. Younger spouse with super in accumulation — the rules let it sit there.
+David: So we should be tipping more into Susan&#x27;s super.
+Tom: That&#x27;s worth modelling, yes. Now — separate point, related — Age Pension. David, you turn sixty-seven in October. That&#x27;s pension age. Whether you actually qualify depends on the means tests.
+David: Right.
+Tom: Two tests, assets and income, Centrelink applies whichever produces the lower payment. The home is exempt from the assets test — that&#x27;s set in stone. So your one-point-four million Mt Lawley place doesn&#x27;t count.
+David: That&#x27;s good.
+Tom: <span class="issue-highlight severity-low" data-issue-id="5" title="LOW — Adviser stated homeowner couple full pension cut-out around $470,000 and part-pension cut-off around $1.06 million" onclick="selectIssue(5)">For a homeowner couple, the full pension assets cut-out is around four-seventy thousand of assessable assets, and the part-pension cut-off is around one-point-zero-six million</span>.
+Susan: We&#x27;re well over.
+Tom: Yes. With your eight-fifty in pension phase, plus the share portfolio, plus cash — let&#x27;s call it one-point-one million of assessable. So at the point David turns sixty-seven, you&#x27;re probably above the part-pension cut-off, or right on the edge.
+David: So no pension.
+Tom: Probably not at first. But — and this is the planning piece — Susan&#x27;s super stays out of the calculation until Susan hits sixty-seven. So the cut-off shifts as time passes and as money moves around.
+Susan: Right.
+Tom: The income test — it uses deeming. You don&#x27;t get assessed on your actual investment income, you get assessed on a deemed return. <span class="issue-highlight severity-high" data-issue-id="0" title="HIGH — Adviser stated incorrect couple deeming threshold of $50,000 and continued without correction when client engaged" onclick="selectIssue(0)">The first fifty thousand for a couple deems at the lower rate</span>, and anything above that deems at the upper rate.
+David: That&#x27;s all of our financial assets?
+Tom: Financial assets — super, bank, shares, managed funds, all of it gets thrown in the pile and deemed.
+David: Sounds like a fudge.
+Tom: It is a fudge. Designed in the seventies when actual returns were variable. Anyway — you&#x27;re going to be assessed on a deemed return on a fairly substantial pile, so the income test will probably also be a constraint.
+David: So we miss out on the pension entirely.
+Tom: At the moment, likely yes, or it&#x27;d be a small part-payment. But there are ways to manage it. One is what I mentioned — keeping money in Susan&#x27;s super. Another is gifting.
+David: Like to the kids?
+Tom: Yes. If you gifted, say, fifty thousand to Cassie and Liam between them, that would come off your assessable assets and get you closer to the threshold.
+David: Just like that?
+Tom: Yes — within the gifting allowances, yes. The kids have been hinting about deposits, so you&#x27;ve got a use case.
+Susan: How much can you give?
+Tom: There are some annual limits but realistically, in your bracket, the gifting can shift the dial. Worth modelling.
+David: Okay, we&#x27;ll think about it.
+Tom: Now — your mum.
+David: Yeah.
+Tom: What&#x27;s the situation in terms of the home, the assets, where she&#x27;s at financially?
+David: So Mum owns the unit in Bayswater outright. She&#x27;s got, I think, around one-eighty in super still — never spent much of it. There&#x27;s a bit of cash, maybe forty. She gets a part Age Pension, has done since Dad died.
+Tom: Right.
+David: Geoff and I are joint power of attorney. Geoff&#x27;s down in Albany so I&#x27;m doing most of the running.
+Tom: Geoff&#x27;s your brother?
+David: Yeah.
+Tom: Okay. So your mum is going into residential care — has she had an ACAT done?
+David: ACAT done in hospital, yeah. She&#x27;s approved for permanent residential.
+Tom: Good. And the place — have you picked one?
+David: There&#x27;s two we like. There&#x27;s one in Mt Lawley actually, ten minutes from us. Place called Riverstone. The other&#x27;s in Bayswater near where she lived.
+Tom: How are they handling the accommodation payment question? Have they given you a published price?
+David: The Mt Lawley one is six-fifty thousand. Bayswater is five-eighty.
+Tom: Okay. So the way the accommodation payment works — the published price is the price. You can pay it as a refundable lump sum, the RAD, or as a daily payment, the DAP, or any combination.
+David: Right.
+Tom: The DAP is calculated using the maximum permissible interest rate published by the government. It changes quarterly. Currently it&#x27;s running around eight and a half per cent.
+David: So if we don&#x27;t pay the RAD, we&#x27;re paying interest on six-fifty at eight and a half.
+Tom: At the current rate, yes. About fifty-five thousand a year just for the accommodation.
+David: Bloody hell.
+Tom: The good news with the RAD — it&#x27;s a refundable lump sum. The aged care provider holds it, and when your mum either leaves or passes away, the lump sum comes back to her or her estate, less any agreed deductions.
+Susan: So it&#x27;s not lost.
+Tom: It&#x27;s not lost. It&#x27;s an interest-free loan to the provider, basically, in exchange for not having to pay the daily charge.
+David: Hm.
+Tom: Now — six-fifty is around the going rate. <span class="issue-highlight severity-medium" data-issue-id="4" title="MEDIUM — Adviser cited outdated maximum accommodation payment threshold of $550,000 with hedging language" onclick="selectIssue(4)">The maximum a provider can charge without seeking approval is, last I looked, around five-fifty thousand</span>. Anything above that has to be approved by the regulator.
+David: Right, but they&#x27;re charging six-fifty.
+Tom: They&#x27;ll have got approval for the higher amount. Common in metro Perth at the better facilities.
+David: Okay.
+Tom: So the question for you — for your mum — is, do we sell the unit and pay the RAD in full, or do we keep the unit and pay the daily charge, or some hybrid.
+David: That&#x27;s the question we keep going round and round on.
+Tom: Sure. There&#x27;s a few moving parts. One — the means-tested fee.
+David: That&#x27;s separate again?
+Tom: That&#x27;s separate. Three fees in residential care. Basic daily fee — everyone pays that, set as a percentage of the single Age Pension. Means-tested care fee — that&#x27;s the one based on your mum&#x27;s income and assets. And then accommodation — the RAD or DAP we just talked about.
+David: Right.
+Tom: The means-tested fee can be a chunk. It&#x27;s capped — <span class="issue-highlight severity-medium" data-issue-id="2" title="MEDIUM — Adviser expressed explicit uncertainty about means-tested care fee caps then proceeded with strategy recommendation dependent on those figures" onclick="selectIssue(2)">I&#x27;m not a hundred per cent sure on the latest figure but I think it&#x27;s around thirty-two thousand a year, with a lifetime cap somewhere in the high seventies</span>.
+Susan: That&#x27;s a lot.
+Tom: It&#x27;s a lot. The way it&#x27;s calculated takes her assets and her income and runs them through a formula. The home is partly assessed for aged care purposes, up to a capped value — even though it&#x27;s exempt for Age Pension purposes.
+David: Wait — so the home counts?
+Tom: For aged care it counts up to a capped value. For Age Pension it&#x27;s fully exempt. Two different schemes, two different rules.
+David: Right.
+Tom: Now — here&#x27;s the wrinkle. If she keeps the home and one of you is living in it, or someone protected, the home is fully exempt. If no protected person is there, the home counts up to the cap for aged care, and for Age Pension purposes it&#x27;s exempt for two years from when she enters care.
+David: No one&#x27;s living there. Geoff&#x27;s in Albany, I&#x27;m here.
+Tom: Right. So the house is going to be assessed for aged care up to the cap, and for Centrelink purposes it&#x27;s exempt for two years and then deemed.
+David: So there&#x27;s a clock ticking.
+Tom: There is. The two-year clock starts the day she enters care.
+David: Okay.
+Tom: <span class="issue-highlight severity-high" data-issue-id="1" title="HIGH — Adviser provided substantive aged care advice (sell unit, pay RAD) for Margaret who is not a client" onclick="selectIssue(1)">My take, and we should run the numbers properly — selling the unit and using the proceeds to pay the RAD probably makes sense. It eliminates the DAP, it converts an asset that&#x27;s going to start counting against her Age Pension into a refundable deposit that comes back to the estate. And it removes th</span>e maintenance and the management headache.
+David: That was my instinct too.
+Susan: What about Geoff?
+David: Geoff and I are aligned on this one. He doesn&#x27;t want to be running a rental from Albany.
+Tom: Good. And the unit — is it likely to sell in the eighties or what we used to think of as a unit price?
+David: Probably six-twenty. Depends on the day.
+Tom: Right. So six-twenty in, six-fifty RAD plus a bit of DAP for the gap, or you find a place at the lower end of the range.
+David: Okay.
+Tom: Now — and I want to flag this — the strategy I&#x27;ve been describing is about your mum. Margaret&#x27;s the one who&#x27;s the affected party here. Anything we put in writing as a recommendation on her behalf, we&#x27;d really need her in the room or her engaged as a client in her own right.
+David: Yeah, fair enough.
+Tom: It&#x27;s not a barrier. We can have a separate appointment, you and Geoff can come with her if she&#x27;s up to it, or one of you under power of attorney if she&#x27;s not. But the advice has to be hers, with her circumstances, not yours.
+David: That makes sense. I think she&#x27;d be okay coming in. Maybe in the next couple of weeks.
+Tom: Let&#x27;s set that up. In the meantime, I can run some indicative numbers for you to look at, but they&#x27;re indicative. Not advice.
+David: Got it.
+Tom: One more thing on the aged care side — the rules changed last year. There&#x27;s a thing now called the hotelling contribution and a non-clinical care contribution that came in with the reforms. The maximum room price went up. The lifetime cap on care contributions changed. It&#x27;s a different landscape than it was eighteen months ago.
+David: Has Mum&#x27;s situation been affected by the reforms?
+Tom: She&#x27;ll come under the new rules because she&#x27;s entering after the first of November last year. That&#x27;s the cut-over date.
+David: Right.
+Tom: I want to be careful here because the reforms are still bedding in, and some of the detail I&#x27;d want to verify before I commit to a strategy. We&#x27;ve got a colleague — Janelle, who specialises specifically in aged care advice — and depending on how the numbers stack up, I might suggest we loop her in for the formal piece.
+David: Sure. Whatever&#x27;s most accurate.
+Tom: Good. Right — let&#x27;s pivot to the downsizer thing while we&#x27;ve got time. Susan, what was your sister saying?
+Susan: She and Bob did the downsizer thing last year. Sold the big house at Doubleview, bought a townhouse in Glendalough. Each put three hundred thousand into super through downsizer. She reckons we should be looking at it.
+Tom: Are you actually thinking of moving?
+David: Mum&#x27;s place we&#x27;d never live in. Our place — we love it. Big garden, established, the kids grew up there.
+Susan: I love the garden. I&#x27;m not moving for the garden alone.
+Tom: That&#x27;s the question I always ask first. The downsizer is a tool, not a goal. If you don&#x27;t want to move, the tool is irrelevant.
+Susan: Fair.
+Tom: But for completeness — the rules. You can put up to three hundred thousand each, so up to six hundred between you, into super using the downsizer contribution rules. It&#x27;s been from age sixty since the rules changed a few years back.
+Susan: Sixty.
+Tom: Right.
+David: I&#x27;m well past, you&#x27;re nearly there.
+Susan: Yep.
+Tom: The home you sell needs to have been your main residence at some point and you need to have owned it for at least ten years. Tick, tick. Contract of sale needs to have happened, and the contribution made within ninety days of settlement.
+Susan: Okay.
+Tom: It doesn&#x27;t count against the contribution caps, so it&#x27;s bonus space in super. And it doesn&#x27;t count as a non-concessional contribution, so the bring-forward rules don&#x27;t get tangled up.
+David: Right.
+Tom: But — and this is the bit people miss — the moment you put the money into super using downsizer, it becomes assessable for Centrelink. The home isn&#x27;t, the money in super on top of pension age is. So you might be making yourself worse off for Age Pension purposes.
+Susan: Oh.
+Tom: For you specifically, Susan, as long as you&#x27;re under sixty-seven the money in your super is invisible. So if Susan downsizes and contributes to her super and stays in accumulation, until she hits sixty-seven the money&#x27;s still hidden from the means test.
+David: But mine wouldn&#x27;t be.
+Tom: Yours wouldn&#x27;t be. Once you&#x27;re in pension phase, it counts.
+David: Right.
+Tom: So look — if you wanted to move, the downsizer is the natural mechanism. If you don&#x27;t want to move, leave it. Come back to it in five years.
+David: I think we leave it.
+Susan: Agreed.
+Tom: Okay. Anything else on that one?
+David: No.
+Tom: Right — last few topics. Insurance. David, you had life and TPD through your industry fund up until you stopped.
+David: It cancelled when I retired. They sent me a letter.
+Tom: Yeah, that&#x27;s pretty common — once contributions stop or you transfer out, the cover lapses. Did you want to keep any of it?
+David: At sixty-six? Honestly, no. The kids are off our books. The mortgage is gone. I can&#x27;t see a reason.
+Tom: I&#x27;d agree. The classic insurance need disappears once you&#x27;ve got the assets to self-insure and no dependants. Susan, you&#x27;ve got a small bit of cover through your fund still.
+Susan: Yeah, I&#x27;ve never paid much attention.
+Tom: It&#x27;s there, the premium&#x27;s modest. I&#x27;d leave it as is for now. Come back to it when you stop work.
+Susan: Sure.
+Tom: Estate planning. When did you last update the wills?
+David: 2019.
+Susan: Was it that long ago?
+David: I think so. After Cassie&#x27;s wedding.
+Tom: Probably worth a refresh. Especially with your mum&#x27;s situation playing out and the inheritance question coming down the track. Have you got testamentary trusts in the wills, or are they straight wills?
+David: Straight, I think.
+Tom: There&#x27;s a case for testamentary trusts, particularly if either of the kids&#x27; situations is — let&#x27;s say complicated.
+Susan: Cassie&#x27;s husband.
+David: Susan.
+Susan: I&#x27;m just saying.
+Tom: Look, you don&#x27;t need to share that with me. The structural point stands — testamentary trusts can give the surviving family a degree of asset protection and flexibility that a straight will doesn&#x27;t. Whether you actually need them depends on the family situation.
+David: Right.
+Tom: I&#x27;m not the person to draft that for you. There&#x27;s a couple of solicitors I send people to — Ramsay Lawyers in West Perth do a good job, and there&#x27;s another firm in Subiaco who specialise in it. I&#x27;ll send you the names.
+David: Appreciated.
+Tom: Power of attorney — you mentioned you and Geoff are joint POA for your mum. What about between the two of you?
+David: We&#x27;ve got enduring powers of attorney for each other. Did them at the same time as the wills.
+Tom: 2019.
+David: Yeah.
+Tom: Worth checking they&#x27;re still current and the witnessing was done properly. Easy thing to overlook.
+David: Will do.
+Tom: One more — superannuation death benefit nominations. Are yours in place?
+David: I think mine lapsed.
+Tom: They expire after three years on most funds unless they&#x27;re non-lapsing. We should renew yours before we open the pension. While we&#x27;re at it we&#x27;ll set up the pension to be reversionary to Susan, which is the cleanest approach for a couple.
+David: Okay.
+Tom: Right — Susan, can you check yours when you get home?
+Susan: Will do.
+Tom: One last thing — David, you mentioned at one point that Geoff was thinking about a sea-change and might want some advice on his super. Just want to flag — we&#x27;d be very happy to chat with him, but he&#x27;d need his own engagement. The advice we give you isn&#x27;t transferable to him.
+David: Yeah, I figured. He&#x27;s in Albany, not sure he&#x27;d come up. Are you happy to do it over Teams?
+Tom: We do Teams meetings regularly. Send him my details.
+David: Will do.
+Tom: Okay. Let me wrap up with action items so we both leave with the same list. One — I open an account-based pension for David with eight-thirty thousand, leave twenty in accumulation. Reversionary to Susan. New death benefit nominations. We aim to have that set up before the end of the financial year so the drawdowns work cleanly.
+David: Yes.
+Tom: Two — we model an increased salary sacrifice for Susan, looking at lifting the contribution while she&#x27;s still under pension age. I&#x27;ll send through the modelling next week.
+Susan: Good.
+Tom: Three — we organise an appointment with your mum, ideally in the next two to three weeks, to do her aged care advice properly. I&#x27;ll bring Janelle in on that one. In the meantime I&#x27;ll do an indicative scenario for you both on the unit-sale, RAD-paid scenario.
+David: Yes.
+Tom: Four — wills and POA review with the solicitor I&#x27;ll refer you to.
+David: Yes.
+Tom: Five — we park the downsizer conversation until or unless you change your minds about moving.
+Susan: Yes.
+Tom: Six — I&#x27;ll prepare a written advice document covering the retirement income strategy, and we&#x27;ll come back together for that probably in three weeks. Does that work?
+David: That should be fine.
+Susan: I&#x27;ll be working that week — what are the times like Wednesday or Thursday afternoon?
+Tom: I&#x27;ll send you a couple of options. Anything else from your end?
+David: Just — thanks. This stuff has been weighing on us. It&#x27;s good to have a plan.
+Susan: Particularly the bit about Mum. We&#x27;ve been a bit lost on that front.
+Tom: Look — it&#x27;s a hard time. The aged care system is its own beast and most people only deal with it once or twice in a lifetime. Don&#x27;t try to figure it all out in your head.
+David: Right.
+Tom: I&#x27;ll walk you out. Did you park out the back?
+David: Up the street.
+Tom: Beautiful day for it.
+Susan: Thanks Tom.
+Tom: Take care, both of you. Talk in a few days.</pre></section>
+  <aside class="sidebar"><h2>Issues</h2><article class="issue-card severity-high" data-issue-id="0" id="card-0" onclick="selectIssue(0)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser stated incorrect couple deeming threshold of $50,000 and continued without correction when client engaged</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;The first fifty thousand for a couple deems at the lower rate&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser significantly understated the couple deeming threshold. The reference shows $106,200 for couples, not $50,000. This is a material error that could mislead clients about their expected deem [...]</li><li><span class="finding-det">conversation_flow</span> — This is a flow-pattern issue because the adviser made a statement about deeming thresholds, David engaged with it (&#x27;That&#x27;s all of our financial assets?&#x27;), and the adviser confirmed without correction. [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="1" id="card-1" onclick="selectIssue(1)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser provided substantive aged care advice (sell unit, pay RAD) for Margaret who is not a client</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;My take, and we should run the numbers properly — selling the unit and using the proceeds to pay the RAD probably makes sense. It eliminates the DAP, it converts an asset that&#x27;s going to start counting against her Age Pension into a refundable deposit that comes back to the estate. And it removes th&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Tom provides a specific recommendation about what Margaret (David&#x27;s mother) should do with her property and finances - sell the unit and pay the RAD. Margaret is not engaged as a client; David and Sus [...]</li><li><span class="finding-det">rule_match</span> — This is a continuation of the substantive advice about Margaret&#x27;s financial strategy, providing specific numbers and options for how to structure her accommodation payment. Tom is essentially advising [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.684, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.50</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.683, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.50 Retail clients rely on personal advice and may suffer significant loss if the advice is not of good quality. For this reason, Div 2 of Pt 7.7A imposes specific obligations-collectively ref [...]</div></li><li><div class='ref-line'><strong>RG 175.162</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.674, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.162 When providing personal advice to a client, an advice provider must act in the best interests of the client in relation to that advice: see s961B(1). We refer to this as the &#x27;best interests [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="2" id="card-2" onclick="selectIssue(2)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser expressed explicit uncertainty about means-tested care fee caps then proceeded with strategy recommendation dependent on those figures</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;I&#x27;m not a hundred per cent sure on the latest figure but I think it&#x27;s around thirty-two thousand a year, with a lifetime cap somewhere in the high seventies&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The adviser expressed explicit uncertainty about the means-tested care fee caps (&#x27;I&#x27;m not a hundred per cent sure&#x27;), then proceeded to recommend a strategy (sell unit, pay RAD) that depends on underst [...]</li><li><span class="finding-det">factual_error</span> — The adviser explicitly expressed uncertainty (&#x27;not a hundred per cent sure&#x27;, &#x27;I think&#x27;). The figures stated were understated - annual cap is $35,238.11 (not ~$32k) and lifetime cap is $84,571.66 (not [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="3" id="card-3" onclick="selectIssue(3)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser stated minimum pension drawdown rate of 6% for age 67</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;at sixty-seven, which you&#x27;ll be in October, the legislated minimum is six per cent&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser confidently stated the minimum drawdown at age 67 is 6%, but the reference shows the 65-74 age bracket has a 5% minimum. The 6% rate applies to ages 75-79.</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="4" id="card-4" onclick="selectIssue(4)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser cited outdated maximum accommodation payment threshold of $550,000 with hedging language</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;The maximum a provider can charge without seeking approval is, last I looked, around five-fifty thousand&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedged language (&#x27;last I looked, around&#x27;) but significantly understated the threshold. The pre-reform figure was $758,627 and the post-1 Nov 2025 figure is $750,000 - both well above [...]</li><li><span class="finding-det">conversation_flow</span> — The adviser hedges with &#x27;last I looked&#x27; about the $550,000 threshold, which affects whether the $650,000 quoted price is unusual or expected. The reference shows this figure changed with November 2025 [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="5" id="card-5" onclick="selectIssue(5)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Adviser stated homeowner couple full pension cut-out around $470,000 and part-pension cut-off around $1.06 million</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;For a homeowner couple, the full pension assets cut-out is around four-seventy thousand of assessable assets, and the part-pension cut-off is around one-point-zero-six million&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedged language (&#x27;around&#x27;) but understated both thresholds. Full pension threshold is $481,500 (not ~$470k) and cut-out is $1,074,000 (not ~$1.06m). The differences are relatively min [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="6" id="card-6" onclick="selectIssue(6)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Adviser had incorrect information about Susan&#x27;s current age recorded in file</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;And you&#x27;re, what, sixty-four now?&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> code_of_ethics</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser had incorrect information recorded about Susan&#x27;s age, believing she was already 64 when she was still 63. While he corrected himself during the meeting, this indicates the client records w [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article></aside>
+</main>
+<script>
+function selectIssue(i) {
+  document.querySelectorAll('.issue-card').forEach(c => {
+    c.classList.remove('expanded');
+    c.classList.remove('selected');
+  });
+  document.querySelectorAll('.issue-highlight').forEach(h => h.classList.remove('selected'));
+
+  const card = document.getElementById('card-' + i);
+  if (card) {
+    card.classList.add('expanded');
+    card.classList.add('selected');
+    card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
+  const highlights = document.querySelectorAll('.issue-highlight[data-issue-id="' + i + '"]');
+  highlights.forEach(h => h.classList.add('selected'));
+  if (highlights.length > 0) {
+    highlights[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+}
+</script>
+</body>
+</html>

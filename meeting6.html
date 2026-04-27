@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compliance Review — meeting6</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --high-bg: #fee2e2;
+  --high-border: #dc2626;
+  --high-bg-hover: #fecaca;
+  --med-bg: #ffedd5;
+  --med-border: #ea580c;
+  --med-bg-hover: #fed7aa;
+  --low-bg: #fef3c7;
+  --low-border: #ca8a04;
+  --low-bg-hover: #fde68a;
+  --selected-shadow: 0 0 0 2px #1f2937;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+header.page-header {
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header.page-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.summary-stats {
+  font-size: 13px;
+  color: var(--muted);
+}
+.summary-stats .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.summary-stats .pill.high { background: var(--high-bg); color: var(--high-border); }
+.summary-stats .pill.medium { background: var(--med-bg); color: var(--med-border); }
+.summary-stats .pill.low { background: var(--low-bg); color: var(--low-border); }
+main.layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  height: calc(100vh - 70px);
+}
+.transcript-pane, .sidebar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+.transcript-pane pre {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  color: var(--text);
+}
+.issue-highlight {
+  border-radius: 3px;
+  padding: 1px 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.1s ease;
+}
+.issue-highlight.severity-high { background: var(--high-bg); border-bottom-color: var(--high-border); }
+.issue-highlight.severity-medium { background: var(--med-bg); border-bottom-color: var(--med-border); }
+.issue-highlight.severity-low { background: var(--low-bg); border-bottom-color: var(--low-border); }
+.issue-highlight.severity-high:hover { background: var(--high-bg-hover); }
+.issue-highlight.severity-medium:hover { background: var(--med-bg-hover); }
+.issue-highlight.severity-low:hover { background: var(--low-bg-hover); }
+.issue-highlight.selected {
+  box-shadow: var(--selected-shadow);
+  border-bottom-width: 3px;
+}
+.sidebar h2 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.issue-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+.issue-card:hover { background: #f9fafb; }
+.issue-card.selected { box-shadow: var(--selected-shadow); }
+.issue-card.severity-high { border-left: 4px solid var(--high-border); }
+.issue-card.severity-medium { border-left: 4px solid var(--med-border); }
+.issue-card.severity-low { border-left: 4px solid var(--low-border); }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.severity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.severity-badge.severity-high { background: var(--high-bg); color: var(--high-border); }
+.severity-badge.severity-medium { background: var(--med-bg); color: var(--med-border); }
+.severity-badge.severity-low { background: var(--low-bg); color: var(--low-border); }
+.card-summary {
+  font-weight: 500;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.card-details {
+  padding: 0 14px 14px 14px;
+  display: none;
+  border-top: 1px solid var(--border);
+  margin-top: 0;
+}
+.issue-card.expanded .card-details {
+  display: block;
+  padding-top: 12px;
+}
+.card-quote {
+  font-style: italic;
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.card-section { margin-bottom: 10px; font-size: 13px; }
+.card-section strong { color: var(--text); }
+.findings-list, .refs-list { margin: 6px 0 0 0; padding-left: 18px; font-size: 12px; }
+.findings-list li { margin-bottom: 6px; }
+.finding-det {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.refs-list li { margin-bottom: 8px; }
+.ref-line { font-size: 12px; }
+.ref-meta { color: var(--muted); font-size: 11px; }
+.ref-excerpt { color: var(--muted); font-size: 11px; margin-top: 2px; padding-left: 6px; border-left: 2px solid var(--border); }
+.not-found-note { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state .check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.empty-state .empty-msg {
+  font-size: 14px;
+  color: var(--text);
+  max-width: 300px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <h1>Compliance Review: meeting6</h1>
+  <div class="summary-stats">Total: <strong>0</strong> &nbsp;|&nbsp; <span class="pill high">High 0</span><span class="pill medium">Medium 0</span><span class="pill low">Low 0</span></div>
+</header>
+<main class="layout">
+  <section class="transcript-pane"><pre>Meeting 6 — Annual Review (Clean)
+
+**Date:** Wednesday, 22 April 2026
+**Time:** 10:00 AM – 10:34 AM AWST
+**Location:** BPF Wealth Group, Perth (in person)
+**Attendees:** James Whitfield (Adviser), Tom Henderson (Client), Sarah Henderson (Client)
+**Duration:** 34 minutes
+
+James: Tom, Sarah — come in, come in. Sorry, just shifting these.
+Sarah: You&#x27;ve redecorated.
+James: Well, &quot;redecorated&quot; is generous. We got rid of the green chairs.
+Tom: They were truly hideous.
+James: I know. The bookkeeper kept calling them avocado.
+Sarah: She was being kind.
+James: Right — coffee, tea, water?
+Tom: Coffee, thanks. White, no sugar.
+Sarah: Just water for me, James.
+James: Won&#x27;t be a moment.
+
+[brief pause]
+
+James: Alright. So this is our annual review for 2025/26 — I sent the agenda through on Monday. Did you get a chance to look at it?
+Tom: Yeah, we read it on the weekend.
+Sarah: Most of it. Tom skimmed the insurance section.
+Tom: I&#x27;m here, aren&#x27;t I?
+James: Fair enough. I&#x27;ve got us booked for about half an hour to forty minutes. Portfolio first, then super, insurance, then a couple of things you flagged in the email — Jack&#x27;s situation and your retirement timeline. Sound okay?
+Sarah: Yes, that&#x27;s good.
+Tom: Yep.
+James: Before I forget — the fee disclosure and ongoing fee consent we discussed in February. Did you get those back to me?
+Sarah: We signed them last week. I emailed them through.
+James: Beautiful. Just confirming Karen&#x27;s got them on file. [typing] Yep, they&#x27;re in. Good.
+
+[short pause]
+
+James: Right. Portfolio. The joint investment account at Macquarie — balance at 31 March was $412,000, up from $378,000 at year-end last year.
+Tom: Better than last year, then.
+James: Yes. The income distribution component over the twelve months was around $14,800; the rest was growth. I&#x27;ll send the formal performance report through after this. One thing to flag — the distribution included a lump from the property trust that was a return of capital, not income. So when your accountant does your tax return, that one&#x27;s a cost base reduction, not assessable income. Just so it doesn&#x27;t surprise you.
+Tom: Right. Do we tell the accountant that?
+James: I&#x27;ll send him a copy of the tax statements when they&#x27;re issued in late July. He&#x27;ll see it. Mention it when you sit down with him though.
+Sarah: Good.
+
+James: Asset allocation. You&#x27;re sitting at about 71% growth, 29% defensive. Last year-end it was 68/32. The drift is from the equity rally — the defensive sleeve hasn&#x27;t grown as fast.
+Tom: Is that a problem?
+James: Not on its own. Your target band is 65 to 75% growth, and you&#x27;re inside it. But — given Tom you said in February you wanted to start derisking ahead of the retirement window — we may want to look at a partial rebalance in the next quarter. I&#x27;m not recommending it today; I want to get the super conversation done first as that interacts with it.
+Tom: Makes sense.
+James: Performance-wise, net of fees, the joint account did about 9.1% for the twelve months. Benchmark for a 70/30 portfolio is around 9.6%. So slightly behind, mostly because the international exposure is a touch underweight on the big US tech names. We don&#x27;t try to time those. I&#x27;m comfortable with that. Are you?
+Sarah: We trust your call there.
+James: Thanks. Any questions on the portfolio before I move on?
+Tom: One — the bond fund in there, has it stopped bleeding? The yearly statement looked grim.
+James: The statement&#x27;s misleading. The unit price is up about 2.4% for the year, and you&#x27;ve received roughly $3,200 in distributions. Total return positive. The statement format makes it look ugly as the unrealised cap loss carry from 2022 is still showing on it.
+Tom: Okay.
+James: Honestly — I was as relieved as anyone when fixed income started behaving again.
+Tom: [laughs]
+
+James: Right. Super. Tom, your balance at 31 March was $782,400. Sarah, $551,900. Combined $1.334 million.
+Sarah: That&#x27;s a fair bit more than last year.
+James: It is. Contributions doing the heavy lifting. Let&#x27;s talk about contributions for this year. Tom, salary $185,000, SG at 12% gives you $22,200 in employer contributions. You&#x27;ve also been salary sacrificing $400 a fortnight, which is — let me do this — $400 by 26, that&#x27;s $10,400. So total concessional going in is $32,600. The cap&#x27;s $30,000. We&#x27;re $2,600 over.
+Tom: Hang on, I thought we&#x27;d left some headroom.
+James: We had — the SG rate stepped up to 12% from 1 July last year. That&#x27;s the bit that ate the headroom. So I want to wind the salary sacrifice back. Drop it to $300 a fortnight from the next pay cycle. That brings you to $30,000 even.
+Tom: Easy. I&#x27;ll let payroll know.
+James: I&#x27;ll send a written instruction confirming the change so you&#x27;ve got something to forward to them.
+Tom: Perfect.
+James: Sarah — your contributions look fine. SG&#x27;s $9,720, no salary sacrifice currently. You&#x27;ve still got carry-forward concessional cap available as your balance was under $500,000 at 30 June 2025.
+Sarah: How much have I got?
+James: Off the top of my head, around $80,000 of unused cap from the last five years. Let me check that figure and confirm in writing — I want to be precise on it as it matters for what I want to suggest next.
+Sarah: Okay.
+James: Big picture — if we wanted to put a chunk into your super before 30 June 2026 and claim a personal deduction, the carry-forward gives us room. The question is whether you&#x27;ve got the cash flow for it, and whether the deduction is worth more to you than the after-tax dollar in your hand. Your marginal rate&#x27;s around 30 cents in the dollar, contributions tax is 15. The headline saving&#x27;s 15% — that&#x27;s real money, although not life-changing.
+Sarah: Mmm.
+James: Don&#x27;t decide today. Let me model it properly with the carry-forward number confirmed and send you a comparison.
+Sarah: Yeah. Let&#x27;s do that.
+
+Tom: Question on super — Steve at the cricket club&#x27;s been telling me about the Division 296 thing, three million dollar tax. Should we be worried?
+James: Fair question. The legislation passed in March this year. Commences 1 July 2026. The way it works — and I&#x27;ll keep it short as it doesn&#x27;t affect you yet — is an additional 15% tax on earnings above a $3 million total super balance, calculated on unrealised gains as well as realised. Combined you&#x27;re at $1.33 million. Even at strong growth, you won&#x27;t be near $3 million during your working lives unless something dramatic happens.
+Tom: So it&#x27;s a non-issue for us.
+James: At present, yes. For some clients with self-managed funds and significant balances, it&#x27;s a real planning issue. For you and Sarah, no. I monitor it. If it becomes relevant, we&#x27;ll address it.
+Sarah: Steve has a self-managed fund?
+Tom: Steve has six rental properties.
+James: [laughs] Different situation.
+Tom: Yeah. Okay.
+
+James: Insurance. Last review we did a needs analysis and you both reduced the life cover inside super as the kids were nearing independence. Tom, you held $750,000 life and $750,000 TPD any-occupation, both inside the AustralianSuper account. Sarah, $400,000 life and $400,000 TPD. Income protection — Tom, you held a personal policy outside super, 75% of salary, two-year benefit period, ninety-day waiting period, indemnity. Premium coming up to about $2,400 a year on a stepped basis.
+Tom: That sounds right.
+James: Anything changed in your health, occupation, hours, anything I should know about?
+Tom: Nothing significant. I had the cardiologist appointment in November though he cleared me — said the murmur&#x27;s been there my whole life and I just hadn&#x27;t been checked.
+James: Good. Worth noting on file. Sarah?
+Sarah: My back&#x27;s been better since I started physio.
+James: Good. Now — a thing I want to put to you. Tom, you&#x27;re 59. The IP benefit period is two years. You&#x27;re planning to retire in say five to seven years. If you had a serious illness or injury between now and retirement, two years of cover bridges to age 61 or 62. That&#x27;s three or four years short of your planned retirement. Worth thinking about extending to a &quot;to-65&quot; benefit period. The premium goes up — I&#x27;d estimate roughly 35 to 40% — although the protection is materially better.
+Tom: Hmm.
+James: I&#x27;ll get formal quotes from the current insurer and one alternative. We&#x27;ll look at it together. Not pushing you to change today.
+Tom: Yeah, get the quotes. I want to see the numbers.
+James: Done.
+
+James: Sarah, on your end — your TPD inside super is &quot;any-occupation&quot;. Given you&#x27;ve got 8 to 10 years of work left and teaching&#x27;s reasonably demanding, you might want own-occupation cover. The trade-off is own-occupation isn&#x27;t available inside super since 2014 — you&#x27;d need a personal policy, which means non-deductible premiums though a more useful definition.
+Sarah: I don&#x27;t think I want to add another premium, James. Honestly.
+James: Fair enough. I&#x27;ll record that. We don&#x27;t have to do it. The any-occupation cover does still pay out — it&#x27;s just got a higher bar.
+Sarah: Yeah. Leave it as is.
+
+James: Right. Bigger conversation. Tom, you said in your email you were thinking about going part-time next year, with a view to full retirement at 65. Still where you&#x27;re at?
+Tom: Yeah. The body&#x27;s good though I&#x27;m tired of the project deadlines. I want to start dialling back.
+James: How would part-time look — three days, four days?
+Tom: Probably four days. Drop a day. Maybe go to three after a year.
+James: Income drops proportionately?
+Tom: Yes. From $185,000 to about $148,000 if I&#x27;m at four days. Three days would be $111,000.
+James: Okay. Couple of things to think through. One — at four days, your concessional contribution headroom shifts as the SG drops. We&#x27;d want to look at whether to start a transition-to-retirement pension to supplement income while keeping super contributions going. That&#x27;s a strategy I&#x27;d want to model properly. Two — when you do go part-time, the salary sacrifice arrangement might be worth restructuring.
+Tom: Can we do the modelling?
+James: Yes. Let me put together a TTR scenario, a no-TTR scenario, and a part-time-without-strategy baseline. I&#x27;ll have it ready for our next meeting. Date for that — looking at the calendar — late June would work, before EOFY decisions need to land.
+Sarah: 25th of June we&#x27;re in Margaret River.
+James: Then early July, after you&#x27;re back. Let&#x27;s pencil in the 9th of July, 10am?
+Tom: Yep.
+Sarah: Works.
+James: I&#x27;ll send a calendar invite this afternoon.
+
+James: One more thing on the part-time decision — you&#x27;ll need to review the income protection if you drop hours. The benefit definition is based on pre-disability income, and most policies look at the highest 12 of the last 36 months. So there&#x27;s some flexibility, although if you go part-time for years before claiming, the benefit will be assessed on the lower income. Something to factor in.
+Tom: Right.
+James: Not a reason to stay full-time. Just something to know.
+Tom: Got it.
+
+James: Sarah — still planning to work to 62?
+Sarah: 62, maybe 63. Depends what&#x27;s happening at the school. New principal next year and we&#x27;ll see.
+James: Okay. I&#x27;ll model two scenarios for you too — retire at 62 and at 64. Different decumulation pictures.
+Sarah: Yes, please.
+
+James: Jack — you said in the email he&#x27;s looking at moving back home for a year while he finishes the postgrad?
+Sarah: Yeah. Rents are mad and he&#x27;s got the research thesis.
+James: Any financial implications? Are you supporting him?
+Tom: We&#x27;re not paying his fees, he&#x27;s got HECS. We&#x27;ll cover his food and whatnot. Maybe $400 a month?
+James: Okay. So nothing that should affect the long-term plan. Reason I ask — sometimes parents under-budget what coming home actually costs. Power, food, the car insurance creeping back on. If it ends up more like a thousand a month, just tell me, as over a year that&#x27;s $12,000 we should account for in the cash flow plan.
+Sarah: We&#x27;ll keep an eye on it.
+James: Good.
+
+James: Tax planning items for EOFY. Few things on the list. One — Sarah&#x27;s carry-forward question, which I&#x27;m modelling. Two — Tom, the bring-back on salary sacrifice we just talked about. Three — neither of you needs the LISTO or co-contribution given your incomes, so we skip those. Four — I want to check whether it&#x27;s worth pre-paying the income protection premium for next year. If you pay it before 30 June, you get the deduction this year. Useful if your income&#x27;s dropping next year as you&#x27;d capture the deduction at the higher marginal rate. Small effect though real.
+Tom: Just do that.
+James: Let me confirm two things first — that the policy allows annual prepayment, and whether it actually saves you anything given you may or may not go part-time. I&#x27;ll send you the working before we instruct anything.
+Tom: Fair.
+James: Five — investment property, you don&#x27;t have one, so we skip. Six — donations. Did you donate anything this year you want to claim?
+Sarah: We did a thing for the Salvos in November. About $400.
+James: Keep the receipt for the accountant.
+Sarah: Already filed.
+James: Excellent.
+
+James: Estate planning — check-in question, nothing changing. Are your wills still current? Last reviewed when?
+Tom: 2022. After Dad died.
+James: And binding nominations on super — these expire every three years on most funds. Yours were lodged in… let me check… April 2023. So they&#x27;ll expire next month.
+Sarah: Oh.
+James: Yeah. I&#x27;ll send fresh nomination forms this week. You both nominate each other, with the children as backups — correct?
+Tom: Yes.
+Sarah: Yes.
+James: Good. I&#x27;ll get them out. Wills — if anything&#x27;s changed in your thinking, talk to your solicitor. Not my area, although I can refer you back to Greg if you need.
+Sarah: We&#x27;ll think about it. I don&#x27;t think anything&#x27;s changed.
+
+James: I think that&#x27;s covered the agenda. Anything I haven&#x27;t asked about?
+Tom: The Bitcoin question. [laughs]
+Sarah: Tom.
+James: [laughs] Have you been reading Steve again?
+Tom: He keeps mentioning it.
+James: My answer hasn&#x27;t changed from last year. It&#x27;s not part of any portfolio I construct, it&#x27;s outside our research scope, and I won&#x27;t be advising on it. If you want to put a small punt of your own discretionary money into it — that&#x27;s not something I&#x27;m going to recommend or recommend against, as it&#x27;s outside the scope of advice we agreed. Just keep it separate from the strategy.
+Tom: Yeah. Fair enough. I won&#x27;t.
+Sarah: Good.
+
+James: Right. Recap. After this meeting I&#x27;ll send through, by end of next week — the formal performance report, the salary sacrifice instruction for Tom, written confirmation of Sarah&#x27;s carry-forward cap, the IP cover quotes, the prepayment working for IP, fresh binding nomination forms for both of you, and a calendar invite for 9 July. Anything I&#x27;ve missed?
+Sarah: I think that&#x27;s everything.
+Tom: I&#x27;m good.
+James: I&#x27;ll formalise the recommendation we discussed today — the salary sacrifice change — in a Record of Advice. The carry-forward, TTR, IP changes and any prepayment we&#x27;ll handle through a fresh Statement of Advice once we&#x27;ve done the modelling, as they&#x27;re new strategy territory.
+Tom: Why the difference?
+James: Record of Advice is for advice within the scope of our existing strategy where your circumstances haven&#x27;t materially changed. New strategies — TTR, additional contributions you haven&#x27;t done before, an IP cover variation — those need a Statement of Advice. Bit more thorough.
+Tom: Got it.
+James: Right. Thanks both. Walk you out?
+Sarah: Yes please.
+Tom: Cheers, James.
+
+[end]</pre></section>
+  <aside class="sidebar"><div class="empty-state">
+  <div class="check">&check;</div>
+  <div class="empty-msg">Zero compliance issues identified — this meeting reflects competent advice.</div>
+</div></aside>
+</main>
+<script>
+function selectIssue(i) {
+  document.querySelectorAll('.issue-card').forEach(c => {
+    c.classList.remove('expanded');
+    c.classList.remove('selected');
+  });
+  document.querySelectorAll('.issue-highlight').forEach(h => h.classList.remove('selected'));
+
+  const card = document.getElementById('card-' + i);
+  if (card) {
+    card.classList.add('expanded');
+    card.classList.add('selected');
+    card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
+  const highlights = document.querySelectorAll('.issue-highlight[data-issue-id="' + i + '"]');
+  highlights.forEach(h => h.classList.add('selected'));
+  if (highlights.length > 0) {
+    highlights[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compliance Review — meeting4</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --high-bg: #fee2e2;
+  --high-border: #dc2626;
+  --high-bg-hover: #fecaca;
+  --med-bg: #ffedd5;
+  --med-border: #ea580c;
+  --med-bg-hover: #fed7aa;
+  --low-bg: #fef3c7;
+  --low-border: #ca8a04;
+  --low-bg-hover: #fde68a;
+  --selected-shadow: 0 0 0 2px #1f2937;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+header.page-header {
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header.page-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.summary-stats {
+  font-size: 13px;
+  color: var(--muted);
+}
+.summary-stats .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.summary-stats .pill.high { background: var(--high-bg); color: var(--high-border); }
+.summary-stats .pill.medium { background: var(--med-bg); color: var(--med-border); }
+.summary-stats .pill.low { background: var(--low-bg); color: var(--low-border); }
+main.layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  height: calc(100vh - 70px);
+}
+.transcript-pane, .sidebar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+.transcript-pane pre {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  color: var(--text);
+}
+.issue-highlight {
+  border-radius: 3px;
+  padding: 1px 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.1s ease;
+}
+.issue-highlight.severity-high { background: var(--high-bg); border-bottom-color: var(--high-border); }
+.issue-highlight.severity-medium { background: var(--med-bg); border-bottom-color: var(--med-border); }
+.issue-highlight.severity-low { background: var(--low-bg); border-bottom-color: var(--low-border); }
+.issue-highlight.severity-high:hover { background: var(--high-bg-hover); }
+.issue-highlight.severity-medium:hover { background: var(--med-bg-hover); }
+.issue-highlight.severity-low:hover { background: var(--low-bg-hover); }
+.issue-highlight.selected {
+  box-shadow: var(--selected-shadow);
+  border-bottom-width: 3px;
+}
+.sidebar h2 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.issue-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+.issue-card:hover { background: #f9fafb; }
+.issue-card.selected { box-shadow: var(--selected-shadow); }
+.issue-card.severity-high { border-left: 4px solid var(--high-border); }
+.issue-card.severity-medium { border-left: 4px solid var(--med-border); }
+.issue-card.severity-low { border-left: 4px solid var(--low-border); }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.severity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.severity-badge.severity-high { background: var(--high-bg); color: var(--high-border); }
+.severity-badge.severity-medium { background: var(--med-bg); color: var(--med-border); }
+.severity-badge.severity-low { background: var(--low-bg); color: var(--low-border); }
+.card-summary {
+  font-weight: 500;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.card-details {
+  padding: 0 14px 14px 14px;
+  display: none;
+  border-top: 1px solid var(--border);
+  margin-top: 0;
+}
+.issue-card.expanded .card-details {
+  display: block;
+  padding-top: 12px;
+}
+.card-quote {
+  font-style: italic;
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.card-section { margin-bottom: 10px; font-size: 13px; }
+.card-section strong { color: var(--text); }
+.findings-list, .refs-list { margin: 6px 0 0 0; padding-left: 18px; font-size: 12px; }
+.findings-list li { margin-bottom: 6px; }
+.finding-det {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.refs-list li { margin-bottom: 8px; }
+.ref-line { font-size: 12px; }
+.ref-meta { color: var(--muted); font-size: 11px; }
+.ref-excerpt { color: var(--muted); font-size: 11px; margin-top: 2px; padding-left: 6px; border-left: 2px solid var(--border); }
+.not-found-note { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state .check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.empty-state .empty-msg {
+  font-size: 14px;
+  color: var(--text);
+  max-width: 300px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <h1>Compliance Review: meeting4</h1>
+  <div class="summary-stats">Total: <strong>11</strong> &nbsp;|&nbsp; <span class="pill high">High 6</span><span class="pill medium">Medium 4</span><span class="pill low">Low 1</span></div>
+</header>
+<main class="layout">
+  <section class="transcript-pane"><pre># Meeting 4 — Second Annual Review (Stress Test)
+## Client: John and Jane Test
+**Date: 10 April 2026**
+**Duration: Approximately 35 minutes**
+**Attendees: Adviser, John Test, Jane Test**
+
+---
+
+Adviser: John, Jane, good to see you both again. Quick one today, I&#x27;ve got another client straight after you so we&#x27;ll keep it tight. I&#x27;ll just run through a few updates and recommendations. I&#x27;ve put together a Record of Advice for the changes we need to make.
+
+John: Sure no worries. Actually before we get into it, we&#x27;ve got a few things to raise ourselves.
+
+Adviser: Of course, go ahead.
+
+John: So the super withdrawal thing from last time, the thirty-five thousand for the campervan. Did that ever get sorted?
+
+Adviser: <span class="issue-highlight severity-high" data-issue-id="0" title="HIGH — Adviser dismisses illegal early super access ($35k for campervan) previously flagged as problematic" onclick="selectIssue(0)">Yeah look, I spoke to our compliance team and they said it should be fine. Lots of people do it. I wouldn&#x27;t worry too much about it.</span>
+
+Jane: Are you sure? You seemed pretty concerned about it last time.
+
+Adviser: Look these things happen all the time. The ATO isn&#x27;t going to come after you for thirty-five grand. Let&#x27;s move on to the important stuff.
+
+John: Alright. The other thing is, I actually took another twenty thousand out in February. Same process, just called Australian Super and did the same thing as last time. We needed to finish paying off the campervan fitout.
+
+Adviser: Okay. Well, same thing. As long as you&#x27;ve met your preservation age, which you have, it&#x27;s fine.
+
+Jane: But he&#x27;s still working. You said last time that was the problem.
+
+Adviser: <span class="issue-highlight severity-high" data-issue-id="1" title="HIGH — Client disclosed additional illegal early super withdrawal ($20k for campervan fitout), adviser dismisses as grey area" onclick="selectIssue(1)">It&#x27;s a grey area. Look, I&#x27;m not a super lawyer. Let&#x27;s not get hung up on it. The money&#x27;s already been spent so there&#x27;s nothing we can do about it now anyway.</span> Let&#x27;s talk about what I&#x27;m recommending going forward.
+
+John: Alright.
+
+Adviser: So first thing. I&#x27;ve been looking at your platform situation and I think we should move both of your super accounts across to Netwealth. It&#x27;s a much better platform, better reporting, better investment menu, and I can manage everything in one place which makes it easier for me and better for you.
+
+Jane: What&#x27;s wrong with Australian Super and REST?
+
+Adviser: Nothing technically wrong with them, they&#x27;re fine for accumulation. But Netwealth gives us access to better investment options, individually managed accounts, proper reporting that integrates with my software. And the fee is very competitive.
+
+John: How much would it cost?
+
+Adviser: The platform fee is nought point three five percent on the first five hundred thousand and then nought point two five above that. Plus the investment management fees on top. For your balance John of about four fifty-six, the platform fee would be about fifteen hundred and ninety-six a year. Plus my ongoing advice fee stays at four thousand four hundred.
+
+Jane: That&#x27;s more than what we&#x27;re paying now isn&#x27;t it? I think Australian Super&#x27;s fees are like nought point seven percent all in including investments.
+
+Adviser: Yeah but you&#x27;re comparing apples and oranges. With Netwealth you get proper portfolio construction, access to alternatives, better tax management. It&#x27;s worth the extra cost.
+
+John: Sounds alright I suppose.
+
+Adviser: Good. I&#x27;ll get the paperwork started. <span class="issue-highlight severity-high" data-issue-id="2" title="HIGH — Adviser recommends Netwealth platform while disclosing personal benefit (conference trip) only after recommendation" onclick="selectIssue(2)">Oh and I should mention, I&#x27;m heading to the Netwealth adviser conference in Queenstown next month. They run a fantastic event, very educational. They cover flights and accommodation for advisers who have more than five million on their platform. So once we move you across I&#x27;ll be pretty close to that threshold which is great.</span>
+
+Jane: They pay for your trip?
+
+Adviser: It&#x27;s an education conference, it&#x27;s pretty standard in the industry. All the platforms do it. Anyway, second thing. I want to talk about your investment mix. I&#x27;ve been doing some research and I think we should put about thirty percent of your combined portfolio into the Pinnacle Growth Fund. It&#x27;s returned fourteen percent per annum over the last three years which is outstanding.
+
+John: Fourteen percent? That&#x27;s good isn&#x27;t it.
+
+Adviser: Exceptional. And the fund manager is someone I know personally, met him at a conference last year. Very sharp guy.
+
+Jane: What kind of fund is it? Is it listed shares or property or what?
+
+Adviser: <span class="issue-highlight severity-high" data-issue-id="3" title="HIGH — Adviser recommends Pinnacle Growth Fund based on past performance and personal acquaintance with fund manager" onclick="selectIssue(3)">It&#x27;s a multi-asset fund. Look, I&#x27;ll send you the PDS but trust me it&#x27;s one of the best options out there right now. Some of my other clients are already in it and they&#x27;re very happy.</span>
+
+John: What&#x27;s the fee on that one?
+
+Adviser: Management fee is one point eight percent per annum plus a performance fee of twenty percent above the benchmark. But with those returns the performance fee is well earned.
+
+Jane: One point eight seems expensive. You said last time our Australian Super option was charging nought point five percent.
+
+Adviser: Different league. You pay for quality. Anyway, let me move on. Jane, you mentioned last time your mum Margaret was thinking about her super situation. Is she still wanting to do something with that?
+
+Jane: Yes actually. Mum&#x27;s sixty-three and she&#x27;s got a defined benefit pension through the government. She worked for the WA Department of Education for thirty years. She&#x27;s been getting the pension since she retired two years ago. But she keeps saying she wants to take a lump sum and invest it herself because she thinks she can do better.
+
+Adviser: Yeah look, defined benefit pensions are pretty old school. She&#x27;d probably be better off rolling the lump sum into a retail fund where she can get proper investment management. I can set her up on Netwealth as well. The lump sum would be quite substantial from thirty years of service.
+
+Jane: She said the commuted value is about six hundred and eighty thousand.
+
+Adviser: Nice. So we&#x27;d roll that across to Netwealth and set her up with a proper investment portfolio. She&#x27;d have more flexibility and control over her money.
+
+John: Would she lose the guaranteed income though?
+
+Adviser: Well yes, but she&#x27;d be able to draw an income from the investment portfolio instead. And if the investments perform well she&#x27;d actually end up with more money.
+
+Jane: She&#x27;s also getting about fifty-two thousand a year from the pension at the moment. Would she get that much from the lump sum?
+
+Adviser: At a four percent drawdown rate on six eighty that&#x27;s twenty-seven thousand two hundred. So it&#x27;s less, but the capital growth over time would more than make up for it.
+
+John: That sounds like less money to me.
+
+Adviser: Initially yes, but long term she&#x27;d be better off. Trust me.
+
+Jane: How would the tax work? She mentioned something about her super being an untaxed fund?
+
+Adviser: <span class="issue-highlight severity-high" data-issue-id="4" title="HIGH — Substantive advice given to non-client (Margaret) about rolling defined benefit pension, with incorrect tax treatment information" onclick="selectIssue(4)">Same as any other super. Once she&#x27;s over sixty it&#x27;s all tax free.</span>
+
+Jane: Are you sure? She said her accountant told her there&#x27;d be tax on the lump sum even though she&#x27;s over sixty.
+
+Adviser: Look I&#x27;d have to check the specifics but generally over sixty is tax free. I&#x27;ll have a look at it. Anyway we can sort that out when we meet with her separately.
+
+John: She hasn&#x27;t actually engaged you as an adviser though has she? Is this proper advice?
+
+Adviser: It&#x27;s just a preliminary conversation, no different to chatting to a mate at a barbecue. We&#x27;ll formalise everything when we sit down with her properly. But yeah, tell her to roll it out. The defined benefit is inflexible and she&#x27;d be better off with a modern portfolio.
+
+Adviser: Now, the other thing I want to raise. Jane you mentioned the Family Tax Benefit situation has changed.
+
+Jane: Yes. So we got a letter from Centrelink last month saying we&#x27;ve been overpaid and we owe them about four thousand two hundred dollars.
+
+Adviser: What happened?
+
+Jane: Well when I started salary sacrificing the extra ten thousand into super last year, the lady at the clinic just reduced my take-home pay. But we didn&#x27;t tell Centrelink about the salary sacrifice. And then when John sold the business and got the five hundred and ten thousand, we didn&#x27;t report that to Centrelink either because we thought business sale proceeds weren&#x27;t income.
+
+Adviser: Right. Well the salary sacrifice is reportable. It shows up as RESC on your income statement and it gets added back to your adjusted taxable income for the FTB income test. So your family income for FTB purposes is higher than what you reported.
+
+Jane: But you didn&#x27;t tell us that when you recommended the salary sacrifice.
+
+Adviser: <span class="issue-highlight severity-medium" data-issue-id="7" title="MEDIUM — Adviser demonstrates uncertainty about whether FTB implications were documented in previous SOA" onclick="selectIssue(7)">I&#x27;m fairly sure it was in the SOA. Let me check.</span> Anyway, the business sale proceeds are a different matter. The capital gain from the business sale would flow through to John&#x27;s tax return, and even though you used the CGT concessions, parts of it might still count as assessable income for the FTB test. What did your accountant lodge?
+
+John: I don&#x27;t know exactly. He said the CGT concessions covered it. But then the ATO sent through an amended assessment in January and my taxable income for that year went up by about sixty-five thousand.
+
+Adviser: Sixty-five thousand? That doesn&#x27;t sound right if the concessions were applied properly. Was it the retirement exemption?
+
+John: He used the retirement exemption and the fifty percent active asset reduction, I remember that. But then he said there was an issue because the company had a different ABN to the one he originally used and he had to amend something. I didn&#x27;t really follow it.
+
+Adviser: Okay look, I&#x27;m not an accountant. You need to sort that out with your accountant. But yes, if your taxable income was sixty-five thousand higher than originally reported, that would absolutely affect your FTB entitlement. That&#x27;s probably where the four thousand two hundred overpayment is coming from.
+
+Jane: So between the salary sacrifice and the amended tax assessment, our family income was way higher than what Centrelink had on file.
+
+Adviser: Correct. For FTB Part A the phase-out starts at sixty-six thousand seven hundred and twenty-two. Your combined ATI would need to include John&#x27;s taxable income including any net capital gain, plus your salary including the RESC. What was your total family ATI for the relevant year?
+
+John: I honestly have no idea. Jane?
+
+Jane: If John&#x27;s taxable income was a hundred and something from the subcontracting, plus the sixty-five thousand on the amended assessment, plus my fifty-two plus the ten thousand RESC... that&#x27;s over two hundred and twenty-seven thousand at least.
+
+Adviser: Right, so you&#x27;d be well above the base rate threshold of one hundred and eighteen thousand seven seventy-one. At that level you&#x27;d get minimal FTB Part A and you definitely wouldn&#x27;t qualify for the Part A supplement because your family income is well above eighty thousand.
+
+Jane: What about Part B?
+
+Adviser: Part B has a primary earner income limit of one hundred and twenty thousand and seven dollars. John&#x27;s income is above that on its own, so you wouldn&#x27;t qualify for Part B at all.
+
+Jane: We&#x27;ve been getting Part B all year.
+
+Adviser: You&#x27;ll probably get another overpayment notice then. You should contact Centrelink and update your income estimate as soon as possible to stop the debt growing.
+
+Jane: This is really frustrating. Nobody told us any of this would happen.
+
+Adviser: <span class="issue-highlight severity-medium" data-issue-id="6" title="MEDIUM — Adviser failed to disclose Family Tax Benefit implications when recommending salary sacrifice strategy" onclick="selectIssue(6)">I understand it&#x27;s frustrating. But look, the FTB is a Centrelink issue. My advice was about super and insurance, not government benefits. That&#x27;s really between you and Centrelink.</span>
+
+John: But shouldn&#x27;t that have been part of the advice? Like you recommended the salary sacrifice. Shouldn&#x27;t you have told us it would affect FTB?
+
+Adviser: In hindsight, probably. But the salary sacrifice saves you far more in tax than you lose in FTB. It&#x27;s still the right call.
+
+John: Alright well we&#x27;re not happy about the surprise. Four grand is four grand.
+
+Adviser: Understood. Let&#x27;s move on. Where are things at with the Mandurah property?
+
+John: We&#x27;ve listed it actually. Got an agent, it went on the market two weeks ago. Asking three sixty.
+
+Adviser: Good. What&#x27;s the current loan balance?
+
+John: Ninety-eight thousand.
+
+Jane: No it&#x27;s a hundred and two. I transferred four thousand off the offset to pay for Chloe&#x27;s textbooks last month.
+
+John: Right. Yeah okay, a hundred and two.
+
+Adviser: And the original purchase price was two thirty?
+
+John: I think it was two thirty-five actually. I found the contract of sale when we were looking through our files for the agent.
+
+Jane: You told the adviser last time it was two thirty.
+
+John: Did I? Well it&#x27;s two thirty-five, I&#x27;ve got the contract now.
+
+Adviser: Okay, two thirty-five. With a sale at three sixty that&#x27;s a capital gain of a hundred and twenty-five thousand before the fifty percent CGT discount, so sixty-two thousand five hundred assessable. And John what&#x27;s your income going to be this financial year from the subcontracting?
+
+John: Probably around a hundred and thirty thousand. I&#x27;ve been busier than expected.
+
+Adviser: Hmm. Last time you said a hundred and fifty. And before that you said one twenty.
+
+John: Did I? Look it varies a lot. Some months are forty thousand, some are barely twenty. Let&#x27;s say one thirty to be safe.
+
+Adviser: Okay. So with the capital gain on top you&#x27;re looking at a taxable income of around a hundred and ninety-two thousand five hundred. That puts you in the forty-five percent marginal bracket for the amount above one hundred and ninety. Whereas last year we talked about timing the sale for a lower income year. Your income hasn&#x27;t dropped, it&#x27;s gone up.
+
+John: Yeah well I couldn&#x27;t exactly turn down the work.
+
+Adviser: No I get it. It just means the tax on the property sale is going to be higher than we modelled. The tax on the capital gain component in the top bracket would be roughly twelve thousand more than if you&#x27;d sold it in a year where your income was a hundred and twenty.
+
+Jane: Should we pull it off the market and wait?
+
+Adviser: Honestly it&#x27;s listed now, you&#x27;ve got the agent engaged, I wouldn&#x27;t pull it. Take the hit and move on. We can use the proceeds productively.
+
+Adviser: Now the proceeds. After paying out the loan and agent fees and marketing costs you&#x27;d net roughly two forty to two fifty. I&#x27;m thinking we put a hundred and fifty thousand of that into Netwealth as a non-concessional contribution into super, and keep the rest in the offset.
+
+Jane: Wait, a hundred and fifty into super? I thought the non-concessional cap was a hundred and twenty thousand. Or is it a hundred and ten?
+
+Adviser: It&#x27;s a hundred and twenty thousand this year. But you can use the three-year bring-forward rule and contribute up to three hundred and sixty thousand in one go.
+
+Jane: Can I do that at any age? I&#x27;m forty-nine so that should be fine, but what about John?
+
+Adviser: John&#x27;s fifty-three so he can still bring forward. You lose the ability at a certain point. I think it&#x27;s sixty-seven now. He&#x27;s fine.
+
+John: And what&#x27;s my total super balance now? I need to be under a certain amount to use the bring forward don&#x27;t I?
+
+Adviser: <span class="issue-highlight severity-low" data-issue-id="10" title="LOW — Client questions total super balance threshold for bring-forward, adviser acknowledges uncertainty but proceeds without verification" onclick="selectIssue(10)">Your total super balance at last thirtieth of June was four fifty-six thousand so you&#x27;re well under the threshold. The cap on total super balance for bring forward eligibility is one point nine million.</span>
+
+Jane: I thought it was one point six six.
+
+Adviser: No they changed it. Pretty sure it&#x27;s one point nine now. Let me double check that actually. Regardless, you&#x27;re well under. It&#x27;s not an issue.
+
+Adviser: Right, I&#x27;ll put together the ROA for the platform switch to Netwealth, the investment change into Pinnacle Growth Fund, and the contribution strategy once the property settles. I&#x27;ll have that to you by end of next week.
+
+John: Don&#x27;t we need a full SOA for this? Last time you did a full Statement of Advice. This seems like a lot of changes.
+
+Adviser: <span class="issue-highlight severity-medium" data-issue-id="8" title="MEDIUM — Adviser proposes ROA for material changes in circumstances when full SOA may be warranted" onclick="selectIssue(8)">No, an ROA is fine for existing clients where we&#x27;re just making adjustments within the existing strategy. It saves time and keeps costs down for you.</span>
+
+Jane: But our circumstances have changed pretty significantly haven&#x27;t they? John&#x27;s sold the business, our income is different, we&#x27;ve got a property sale coming through, the FTB situation.
+
+Adviser: The core strategy is still the same. We&#x27;re just tweaking the implementation. An ROA covers it.
+
+John: Alright, you&#x27;re the expert.
+
+Adviser: One more thing. Mitchell, your son. He called me last week about the first home buyer thing. I told him about the First Home Super Saver Scheme. He can salary sacrifice up to fifteen thousand per year into super and then pull it out for a house deposit. I talked him through the numbers and told him to set it up with his employer.
+
+Jane: He mentioned that. He said you were really helpful. But did you need to do a proper advice document for that? He&#x27;s a separate person isn&#x27;t he?
+
+Adviser: <span class="issue-highlight severity-high" data-issue-id="5" title="HIGH — Substantive advice given to non-client (Mitchell, client&#x27;s son) about First Home Super Saver Scheme without proper documentation" onclick="selectIssue(5)">For the kids of existing clients I usually just do it informally. Saves everyone the paperwork. He&#x27;s not paying for advice so it doesn&#x27;t make sense to do a full SOA.</span>
+
+John: Fair enough.
+
+Adviser: Oh and before I forget. I&#x27;m also recommending we cancel John&#x27;s income protection policy. Now that you&#x27;ve sold the business and you&#x27;re just subcontracting casually, the premium is hard to justify. You&#x27;re paying four sixty-two a month and your income is variable. If you stopped working tomorrow you&#x27;ve got enough in super and savings to manage.
+
+Jane: But what if he hurts himself on a job site? He&#x27;s still doing physical work.
+
+Adviser: Yes but the policy is set up for a business owner earning a consistent salary. Your income structure has changed. The insurer may not even pay a claim now because your employment status doesn&#x27;t match what was declared on the application. So you&#x27;d be paying premiums for a policy that might not respond.
+
+John: That&#x27;s concerning. But shouldn&#x27;t we try to fix the policy rather than cancel it?
+
+Adviser: We could, but the underwriting process would take weeks and the premium might go up. I think the money is better off going into super. Put the five thousand five hundred a year you&#x27;d save on premiums into additional super contributions instead.
+
+Jane: I don&#x27;t love the idea of having no income protection at all.
+
+Adviser: Look, it&#x27;s a risk management decision. You&#x27;ve got to weigh the cost versus the likelihood. John&#x27;s fifty-three, he&#x27;s winding down, he doesn&#x27;t need it.
+
+John: I&#x27;m fifty-four now actually. Birthday was last week.
+
+Adviser: Right, fifty-four. Sorry. Anyway, that&#x27;s even more reason. Only eleven years to sixty-five. The cumulative premiums between now and sixty-five would be over sixty thousand dollars. Put that into super instead and you&#x27;ll be better off.
+
+Adviser: Alright I think we&#x27;ve covered everything. I&#x27;ll get the ROA to you by next Friday and we can get everything moving. Thanks for coming in.
+
+Jane: Thanks. Oh wait, John&#x27;s mum called us last night. She&#x27;s going into a nursing home. Do we need to factor that in?
+
+Adviser: <span class="issue-highlight severity-medium" data-issue-id="9" title="MEDIUM — Aged care matter raised with material property co-ownership disclosure, adviser defers without documenting changed circumstances" onclick="selectIssue(9)">Ah, we can deal with that later. Aged care is a bit outside my wheelhouse if I&#x27;m honest. I&#x27;ll put you in touch with someone who specialises in that.</span> But it shouldn&#x27;t affect your personal financial plan.
+
+John: It might. She&#x27;s been living in her house which is worth about five hundred thousand and we&#x27;re co-owners. We bought a quarter share ten years ago as an investment.
+
+Adviser: Oh. Right. That&#x27;s different. Well, let&#x27;s deal with that next time. I&#x27;ve got my next client in five minutes. I&#x27;ll add it to the agenda for next meeting.
+
+Jane: Okay.
+
+John: Cheers mate. Thanks.
+
+---
+
+*End of transcript*</pre></section>
+  <aside class="sidebar"><h2>Issues</h2><article class="issue-card severity-high" data-issue-id="0" id="card-0" onclick="selectIssue(0)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser dismisses illegal early super access ($35k for campervan) previously flagged as problematic</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Yeah look, I spoke to our compliance team and they said it should be fine. Lots of people do it. I wouldn&#x27;t worry too much about it.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> code_of_ethics, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser dismisses and normalises what appears to be illegal early access to superannuation (client withdrew $35,000 and then another $20,000 while still working, which does not meet a condition of [...]</li><li><span class="finding-det">rule_match</span> — The client explicitly references that the adviser &#x27;seemed pretty concerned about it last time&#x27; regarding the early super access. The adviser now dismisses the concern with &#x27;these things happen all the [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>Standard 1</strong> — Financial Planners and Advisers Code of Ethics 201 [...] <span class='ref-meta'>(similarity: 0.611, authority level: 1)</span></div><div class='ref-excerpt'>## Standard 1
+
+You must act in accordance with all applicable laws, including this Code, and not try to avoid or circumvent their intent.</div></li><li><div class='ref-line'><strong>Standard 12</strong> — Financial Planners and Advisers Code of Ethics 201 [...] <span class='ref-meta'>(similarity: 0.555, authority level: 1)</span></div><div class='ref-excerpt'>## Standard 12
+
+Individually and in cooperation with peers, you must uphold and promote the ethical standards of the profession and hold each other accountable for the protection of the public interes [...]</div></li><li><div class='ref-line'><strong>Prelude</strong> — Financial Planners and Advisers Code of Ethics 201 [...] <span class='ref-meta'>(similarity: 0.529, authority level: 1)</span></div><div class='ref-excerpt'># Financial Planners and Advisers Code of Ethics 2019
+
+## About this Code
+
+This is the Financial Planners and Advisers Code of Ethics 2019, made by the Financial Adviser Standards and Ethics Authority [...]</div></li><li><div class='ref-line'><strong>RG 175.277</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.502, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.277 We expect advice providers to exercise their judgement in considering whether any of these additional steps need to be taken to satisfy s961B(2)(g).
+
+## Example 17: Advice with strategic [...]</div></li><li><div class='ref-line'><strong>RG 244.79</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.501, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.79 For example, to meet the best interests duty and related obligations, we would expect you to ask a series of questions to identify the subject matter of the advice sought by the client and [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="1" id="card-1" onclick="selectIssue(1)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Client disclosed additional illegal early super withdrawal ($20k for campervan fitout), adviser dismisses as grey area</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;It&#x27;s a grey area. Look, I&#x27;m not a super lawyer. Let&#x27;s not get hung up on it. The money&#x27;s already been spent so there&#x27;s nothing we can do about it now anyway.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — John withdrew $35,000 and then an additional $20,000 from super while still working. Jane explicitly states &#x27;But he&#x27;s still working. You said last time that was the problem.&#x27; The adviser dismisses thi [...]</li><li><span class="finding-det">rule_match</span> — This is a second distinct instance of early super access - $20,000 withdrawn in February while John is still working, for the purpose of paying off campervan fitout. This is not a permitted condition [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.72</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.56, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.72 Superannuation trustees are subject to obligations under the Superannuation Industry (Supervision) Act 1993 (SIS Act) when charging financial product advice fees against a member&#x27;s interest [...]</div></li><li><div class='ref-line'><strong>RG 246.53</strong> — RG 246 Conflicted and other banned remuneration <span class='ref-meta'>(similarity: 0.551, authority level: 2)</span></div><div class='ref-excerpt'>- RG 246.53 In giving the benefit, the trustee will need to ensure compliance with the relevant obligations under the Superannuation Industry (Supervision) Act 1993 (SIS Act) and the Income Tax Assess [...]</div></li><li><div class='ref-line'><strong>RG 175.73</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.522, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.73 In addition, superannuation trustees must meet SIS Act requirements if they charge any other member for the cost of providing financial product advice to a member: see s99F.
+
+## Common law [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="2" id="card-2" onclick="selectIssue(2)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser recommends Netwealth platform while disclosing personal benefit (conference trip) only after recommendation</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Oh and I should mention, I&#x27;m heading to the Netwealth adviser conference in Queenstown next month. They run a fantastic event, very educational. They cover flights and accommodation for advisers who have more than five million on their platform. So once we move you across I&#x27;ll be pretty close to that threshold which is great.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> code_of_ethics, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser recommends moving the client to Netwealth while explicitly acknowledging a personal benefit (conference trip threshold). For Margaret, the adviser recommends giving up a guaranteed $52,000 [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser explicitly acknowledges that moving the clients to Netwealth will help him reach a threshold for receiving a personal benefit (paid conference trip). This is a clear conflict of interest t [...]</li><li><span class="finding-det">rule_match</span> — The adviser made the Netwealth platform recommendation, obtained client agreement (&#x27;Sounds alright I suppose&#x27;), stated &#x27;I&#x27;ll get the paperwork started&#x27;, and only then disclosed the conference sponsors [...]</li><li><span class="finding-det">rule_match</span> — The adviser dismisses Jane&#x27;s valid fee comparison (Australian Super at 0.7% all-in versus higher Netwealth fees) with vague feature claims (&#x27;proper portfolio construction&#x27;, &#x27;better tax management&#x27;) wi [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser discloses the Netwealth conference benefit only after recommending the platform switch, and dismisses the client&#x27;s concern by saying &#x27;it&#x27;s pretty standard in the industry.&#x27; This third-part [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>Standard 7</strong> — Financial Planners and Advisers Code of Ethics 201 [...] <span class='ref-meta'>(similarity: 0.753, authority level: 1)</span></div><div class='ref-excerpt'>## Standard 7
+
+The client must give free, prior and informed consent to all benefits you and your principal will receive in connection with acting for the client, including any fees for services that [...]</div></li><li><div class='ref-line'><strong>RG 175.307</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.706, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.307 An advice provider must prioritise the interests of the client if the advice provider knows, or reasonably ought to know, when they give the advice that there is a conflict between the inte [...]</div></li><li><div class='ref-line'><strong>RG 90.30</strong> — RG 90 Example Statement of Advice: Scaled advice f [...] <span class='ref-meta'>(similarity: 0.685, authority level: 2)</span></div><div class='ref-excerpt'>|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ [...]</div></li><li><div class='ref-line'><strong>RG 90.29</strong> — RG 90 Example Statement of Advice: Scaled advice f [...] <span class='ref-meta'>(similarity: 0.665, authority level: 2)</span></div><div class='ref-excerpt'>| RG 90.29 | Part 7.7A of the Corporations Act contains a series of obligations that financial advisers must meet in providing advice. These are designed to reduce conflicts of interest and ensure the [...]</div></li><li><div class='ref-line'><strong>RG 246.58</strong> — RG 246 Conflicted and other banned remuneration <span class='ref-meta'>(similarity: 0.626, authority level: 2)</span></div><div class='ref-excerpt'>- RG 246.58 If an AFS licensee or their representative provides, or is likely to provide, personal advice to a retail client in relation to a life risk insurance, general insurance or consumer credit [...]</div></li><li><div class='ref-line'><strong>RG 175.170</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.511, authority level: 2)</span></div><div class='ref-excerpt'>The advice provider discusses the reports with the client and believes that the client understands them, even though they are presented in a complex manner.
+
+The advice provider recommends that the cl [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="3" id="card-3" onclick="selectIssue(3)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser recommends Pinnacle Growth Fund based on past performance and personal acquaintance with fund manager</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;It&#x27;s a multi-asset fund. Look, I&#x27;ll send you the PDS but trust me it&#x27;s one of the best options out there right now. Some of my other clients are already in it and they&#x27;re very happy.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> code_of_ethics</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser recommends the Pinnacle Growth Fund based primarily on past performance and personal acquaintance with the manager, asking clients to &#x27;trust me&#x27; rather than ensuring they understand the pr [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="4" id="card-4" onclick="selectIssue(4)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Substantive advice given to non-client (Margaret) about rolling defined benefit pension, with incorrect tax treatment information</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Same as any other super. Once she&#x27;s over sixty it&#x27;s all tax free.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 4 detector(s):</strong> code_of_ethics, conversation_flow, factual_error, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The client raised specific information that the defined benefit pension is from an untaxed source (government defined benefit funds are typically untaxed in the fund), which has materially different t [...]</li><li><span class="finding-det">conversation_flow</span> — The client flagged a concern about the appropriateness of giving advice to a non-client. The adviser characterised it as informal, but then proceeded to give specific, actionable strategic advice to b [...]</li><li><span class="finding-det">factual_error</span> — The adviser confidently stated that super is &#x27;all tax free&#x27; over 60, dismissing the client&#x27;s mention that it&#x27;s an untaxed fund. This is materially wrong for untaxed sources (like government defined be [...]</li><li><span class="finding-det">rule_match</span> — The adviser provides specific recommendations about Margaret (Jane&#x27;s mother) - that she should roll her defined benefit pension lump sum to Netwealth, set up an investment portfolio, and that &#x27;long te [...]</li><li><span class="finding-det">rule_match</span> — This is a direct instruction to convey specific advice to a non-client third party: &#x27;tell her to roll it out&#x27;. The adviser is instructing the client to convey a substantive recommendation (commute the [...]</li><li><span class="finding-det">rule_match</span> — The adviser recommends Margaret commute her defined benefit pension and states the tax treatment is &#x27;Same as any other super. Once she&#x27;s over sixty it&#x27;s all tax free.&#x27; Jane specifically raises that Ma [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser provides incorrect information about the tax treatment of untaxed super funds (defined benefit pensions from government employment are typically untaxed funds with different tax treatment, [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser demonstrates deficient knowledge in multiple areas central to their advice: incorrect understanding of untaxed super fund taxation (government defined benefit schemes), uncertainty about s [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser provides substantive financial advice to non-clients (Margaret and Mitchell) without proper documentation or client engagement, describing it as &#x27;no different to chatting to a mate at a ba [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.681, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.50</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.676, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.50 Retail clients rely on personal advice and may suffer significant loss if the advice is not of good quality. For this reason, Div 2 of Pt 7.7A imposes specific obligations-collectively ref [...]</div></li><li><div class='ref-line'><strong>RG 175.162</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.667, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.162 When providing personal advice to a client, an advice provider must act in the best interests of the client in relation to that advice: see s961B(1). We refer to this as the &#x27;best interests [...]</div></li><li><div class='ref-line'><strong>RG 175.243</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.627, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.243 Before recommending that a client acquire a financial product, we expect advice providers to formulate the strategy they are basing the advice on, taking into account the advice provider&#x27; [...]</div></li><li><div class='ref-line'><strong>RG 175.204</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.623, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.204 This is also necessary to comply with the requirement to give appropriate advice under s961G: see RG 175.279-RG 175.302.
+
+## Explicit and implicit subject matter</div></li><li><div class='ref-line'><strong>RG 244.80</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.576, authority level: 2)</span></div><div class='ref-excerpt'>| RG 244.80 | The examples in the appendix illustrate how an adviser can discuss with the client a number of options for getting personal advice that may be quite limited or more comprehensive: see, i [...]</div></li><li><div class='ref-line'><strong>RG 244.67</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.548, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.67 The first of these examples is consistent with feedback from industry that clients often seek advice in response to a life event, and this is how the request for advice is framed. If the s [...]</div></li><li><div class='ref-line'><strong>RG 175.277</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.546, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.277 We expect advice providers to exercise their judgement in considering whether any of these additional steps need to be taken to satisfy s961B(2)(g).
+
+## Example 17: Advice with strategic [...]</div></li><li><div class='ref-line'><strong>RG 175.198</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.54, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.198 The subject matter of the advice could be a goal the client is seeking to achieve and a strategy for reaching their goal, as well as, or instead of, a recommendation about specific financ [...]</div></li><li><div class='ref-line'><strong>RG 175.90</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.538, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.90 Personal advice is typically provided to a client as part of a process that includes one or more consultations with the client to make inquiries about the client&#x27;s relevant circumstances. [...]</div></li><li><div class='ref-line'><strong>RG 244.11</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.501, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.11 REP 279 outlined that, even for advice on retirement planning that is very limited in scope, there are some issues that cannot reasonably be excluded from the scope. For example, it would [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="5" id="card-5" onclick="selectIssue(5)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Substantive advice given to non-client (Mitchell, client&#x27;s son) about First Home Super Saver Scheme without proper documentation</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;For the kids of existing clients I usually just do it informally. Saves everyone the paperwork. He&#x27;s not paying for advice so it doesn&#x27;t make sense to do a full SOA.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> code_of_ethics, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — The adviser admits providing specific advice to Mitchell - &#x27;I talked him through the numbers and told him to set it up with his employer&#x27; - about the First Home Super Saver Scheme. Mitchell is not eng [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser provides substantive financial advice to non-clients (Margaret and Mitchell) without proper documentation or client engagement, describing it as &#x27;no different to chatting to a mate at a ba [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.713, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.50</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.712, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.50 Retail clients rely on personal advice and may suffer significant loss if the advice is not of good quality. For this reason, Div 2 of Pt 7.7A imposes specific obligations-collectively ref [...]</div></li><li><div class='ref-line'><strong>RG 175.162</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.709, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.162 When providing personal advice to a client, an advice provider must act in the best interests of the client in relation to that advice: see s961B(1). We refer to this as the &#x27;best interests [...]</div></li><li><div class='ref-line'><strong>RG 175.90</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.596, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.90 Personal advice is typically provided to a client as part of a process that includes one or more consultations with the client to make inquiries about the client&#x27;s relevant circumstances. [...]</div></li><li><div class='ref-line'><strong>RG 244.80</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.576, authority level: 2)</span></div><div class='ref-excerpt'>| RG 244.80 | The examples in the appendix illustrate how an adviser can discuss with the client a number of options for getting personal advice that may be quite limited or more comprehensive: see, i [...]</div></li><li><div class='ref-line'><strong>RG 244.11</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.571, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.11 REP 279 outlined that, even for advice on retirement planning that is very limited in scope, there are some issues that cannot reasonably be excluded from the scope. For example, it would [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="6" id="card-6" onclick="selectIssue(6)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser failed to disclose Family Tax Benefit implications when recommending salary sacrifice strategy</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;I understand it&#x27;s frustrating. But look, the FTB is a Centrelink issue. My advice was about super and insurance, not government benefits. That&#x27;s really between you and Centrelink.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 3 detector(s):</strong> code_of_ethics, conversation_flow, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Jane states &#x27;But you didn&#x27;t tell us that when you recommended the salary sacrifice&#x27; regarding the FTB impact. The adviser admits &#x27;In hindsight, probably&#x27; should have disclosed it. Salary sacrifice inc [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser failed to consider the Family Tax Benefit implications when recommending salary sacrifice, resulting in an unexpected $4,200 debt for the clients. When confronted, the adviser dismissed re [...]</li><li><span class="finding-det">conversation_flow</span> — The client raised a concern about whether material information about FTB implications was disclosed in prior advice. The adviser acknowledged the need to check but did not actually verify, instead def [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.684, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 175.243</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.672, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.243 Before recommending that a client acquire a financial product, we expect advice providers to formulate the strategy they are basing the advice on, taking into account the advice provider&#x27; [...]</div></li><li><div class='ref-line'><strong>RG 175.167</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.66, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.167 Advice providers also have an obligation to:
+- (a) only provide appropriate advice (s961G); and
+
+- (b) prioritise the interests of the client where there is a conflict with their own inte [...]</div></li><li><div class='ref-line'><strong>RG 244.87</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.535, authority level: 2)</span></div><div class='ref-excerpt'>| RG 244.87 | A key issue that arose in our findings in REP 279 was a lack of clear communication to clients about the scope of the advice that they were receiving. |</div></li><li><div class='ref-line'><strong>RG 175.193</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.528, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.193 Many clients do not know or fully understand what their objectives, financial situation or needs are. Clients may also provide instructions that are unclear or seem inconsistent with thei [...]</div></li><li><div class='ref-line'><strong>RG 175.226</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.522, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.226 It is also possible that additional information about the client&#x27;s relevant circumstances may lead to a change or uncertainty in what the advice provider identifies as the subject matter [...]</div></li><li><div class='ref-line'><strong>RG 175.271</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.516, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.271 Recommendations about a financial product may not fully meet the client&#x27;s relevant circumstances in all cases. In some cases, complying with the best interests duty will require an advice [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="7" id="card-7" onclick="selectIssue(7)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser demonstrates uncertainty about whether FTB implications were documented in previous SOA</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;I&#x27;m fairly sure it was in the SOA. Let me check.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> code_of_ethics</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser demonstrates incomplete or inaccurate records: uncertainty about whether FTB implications were documented in the SOA (&#x27;I&#x27;m fairly sure it was in the SOA. Let me check&#x27;), conflicting record [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 90.36</strong> — RG 90 Example Statement of Advice: Scaled advice f [...] <span class='ref-meta'>(similarity: 0.589, authority level: 2)</span></div><div class='ref-excerpt'>|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ [...]</div></li><li><div class='ref-line'><strong>RG 90.70</strong> — RG 90 Example Statement of Advice: Scaled advice f [...] <span class='ref-meta'>(similarity: 0.572, authority level: 2)</span></div><div class='ref-excerpt'>| RG 90.70 | However, the SOA does not need to set out all the details of this investigation. We have assumed that the adviser has recorded sufficient information on the client files to demonstrate th [...]</div></li><li><div class='ref-line'><strong>RG 175.336</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.557, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.336 We expect that the types of records that are kept will vary depending on the advice that is provided, including its scope, and the obligations that apply when providing the advice-for exa [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="8" id="card-8" onclick="selectIssue(8)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser proposes ROA for material changes in circumstances when full SOA may be warranted</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;No, an ROA is fine for existing clients where we&#x27;re just making adjustments within the existing strategy. It saves time and keeps costs down for you.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Jane explicitly identifies material changes: &#x27;John&#x27;s sold the business, our income is different, we&#x27;ve got a property sale coming through, the FTB situation.&#x27; These are significant changes to relevant [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.96</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.722, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.96 An SOA must comply with the Corporations Act and Corporations Regulations, and must include all of the following:
+
+- (a) the title &#x27;Statement of Advice&#x27; on the cover, or at or near the front [...]</div></li><li><div class='ref-line'><strong>RG 90.27</strong> — RG 90 Example Statement of Advice: Scaled advice f [...] <span class='ref-meta'>(similarity: 0.679, authority level: 2)</span></div><div class='ref-excerpt'>RG 90.27 Under s947B, 947C and 947D, an SOA must contain:
+
+- (a) a statement setting out the advice (see s947B(2)(a) and 947C(2)(a));
+- (b) information about the basis on which the advice is or was gi [...]</div></li><li><div class='ref-line'><strong>RG 175.85</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.676, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.85 The obligations in Div 2 of Pt 7.7A determine what advice is provided. The SOA documents this advice, and (among other things) contains information about the reasoning that led to the advice [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="9" id="card-9" onclick="selectIssue(9)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Aged care matter raised with material property co-ownership disclosure, adviser defers without documenting changed circumstances</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Ah, we can deal with that later. Aged care is a bit outside my wheelhouse if I&#x27;m honest. I&#x27;ll put you in touch with someone who specialises in that.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — Material client information about a significant asset (approximately $125k value as quarter share) was disclosed at the end of the meeting. The adviser acknowledged it changes things but did not note [...]</li><li><span class="finding-det">rule_match</span> — While the adviser correctly identifies aged care as outside their expertise and offers a referral, the issue is that the client reveals they are co-owners of a property worth $500,000 with John&#x27;s moth [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.199</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.655, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.199 Either an advice provider or the client may suggest limiting or revising the subject matter of advice sought by the client. If a client seeks advice on a revised subject matter, the advic [...]</div></li><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.629, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.20</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.623, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.20 If you are considering providing factual information and advice to your clients, you may also need to consider:
+- (a) common law obligations, such as the duty of care and fiduciary duties; [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="10" id="card-10" onclick="selectIssue(10)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Client questions total super balance threshold for bring-forward, adviser acknowledges uncertainty but proceeds without verification</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Your total super balance at last thirtieth of June was four fifty-six thousand so you&#x27;re well under the threshold. The cap on total super balance for bring forward eligibility is one point nine million.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The client raised a specific figure that differed from the adviser&#x27;s statement. The adviser acknowledged uncertainty (&#x27;let me double check&#x27;) but then proceeded without actually checking, dismissing th [...]</li><li><span class="finding-det">factual_error</span> — The adviser stated the threshold is $1.9m but the reference shows full bring-forward ($360k) requires TSB &lt; $1.76m. The thresholds are $1.76m (full), $1.88m (2-year), and $2m (nil). While the adviser [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 244.87</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.502, authority level: 2)</span></div><div class='ref-excerpt'>| RG 244.87 | A key issue that arose in our findings in REP 279 was a lack of clear communication to clients about the scope of the advice that they were receiving. |</div></li><li><div class='ref-line'><strong>RG 175.193</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.501, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.193 Many clients do not know or fully understand what their objectives, financial situation or needs are. Clients may also provide instructions that are unclear or seem inconsistent with thei [...]</div></li></ul></div>
+  </div>
+</article></aside>
+</main>
+<script>
+function selectIssue(i) {
+  document.querySelectorAll('.issue-card').forEach(c => {
+    c.classList.remove('expanded');
+    c.classList.remove('selected');
+  });
+  document.querySelectorAll('.issue-highlight').forEach(h => h.classList.remove('selected'));
+
+  const card = document.getElementById('card-' + i);
+  if (card) {
+    card.classList.add('expanded');
+    card.classList.add('selected');
+    card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
+  const highlights = document.querySelectorAll('.issue-highlight[data-issue-id="' + i + '"]');
+  highlights.forEach(h => h.classList.add('selected'));
+  if (highlights.length > 0) {
+    highlights[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+}
+</script>
+</body>
+</html>

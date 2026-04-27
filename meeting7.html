@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compliance Review — meeting7</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --high-bg: #fee2e2;
+  --high-border: #dc2626;
+  --high-bg-hover: #fecaca;
+  --med-bg: #ffedd5;
+  --med-border: #ea580c;
+  --med-bg-hover: #fed7aa;
+  --low-bg: #fef3c7;
+  --low-border: #ca8a04;
+  --low-bg-hover: #fde68a;
+  --selected-shadow: 0 0 0 2px #1f2937;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+header.page-header {
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header.page-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.summary-stats {
+  font-size: 13px;
+  color: var(--muted);
+}
+.summary-stats .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.summary-stats .pill.high { background: var(--high-bg); color: var(--high-border); }
+.summary-stats .pill.medium { background: var(--med-bg); color: var(--med-border); }
+.summary-stats .pill.low { background: var(--low-bg); color: var(--low-border); }
+main.layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  height: calc(100vh - 70px);
+}
+.transcript-pane, .sidebar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+.transcript-pane pre {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  color: var(--text);
+}
+.issue-highlight {
+  border-radius: 3px;
+  padding: 1px 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.1s ease;
+}
+.issue-highlight.severity-high { background: var(--high-bg); border-bottom-color: var(--high-border); }
+.issue-highlight.severity-medium { background: var(--med-bg); border-bottom-color: var(--med-border); }
+.issue-highlight.severity-low { background: var(--low-bg); border-bottom-color: var(--low-border); }
+.issue-highlight.severity-high:hover { background: var(--high-bg-hover); }
+.issue-highlight.severity-medium:hover { background: var(--med-bg-hover); }
+.issue-highlight.severity-low:hover { background: var(--low-bg-hover); }
+.issue-highlight.selected {
+  box-shadow: var(--selected-shadow);
+  border-bottom-width: 3px;
+}
+.sidebar h2 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.issue-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+.issue-card:hover { background: #f9fafb; }
+.issue-card.selected { box-shadow: var(--selected-shadow); }
+.issue-card.severity-high { border-left: 4px solid var(--high-border); }
+.issue-card.severity-medium { border-left: 4px solid var(--med-border); }
+.issue-card.severity-low { border-left: 4px solid var(--low-border); }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.severity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.severity-badge.severity-high { background: var(--high-bg); color: var(--high-border); }
+.severity-badge.severity-medium { background: var(--med-bg); color: var(--med-border); }
+.severity-badge.severity-low { background: var(--low-bg); color: var(--low-border); }
+.card-summary {
+  font-weight: 500;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.card-details {
+  padding: 0 14px 14px 14px;
+  display: none;
+  border-top: 1px solid var(--border);
+  margin-top: 0;
+}
+.issue-card.expanded .card-details {
+  display: block;
+  padding-top: 12px;
+}
+.card-quote {
+  font-style: italic;
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.card-section { margin-bottom: 10px; font-size: 13px; }
+.card-section strong { color: var(--text); }
+.findings-list, .refs-list { margin: 6px 0 0 0; padding-left: 18px; font-size: 12px; }
+.findings-list li { margin-bottom: 6px; }
+.finding-det {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.refs-list li { margin-bottom: 8px; }
+.ref-line { font-size: 12px; }
+.ref-meta { color: var(--muted); font-size: 11px; }
+.ref-excerpt { color: var(--muted); font-size: 11px; margin-top: 2px; padding-left: 6px; border-left: 2px solid var(--border); }
+.not-found-note { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state .check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.empty-state .empty-msg {
+  font-size: 14px;
+  color: var(--text);
+  max-width: 300px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <h1>Compliance Review: meeting7</h1>
+  <div class="summary-stats">Total: <strong>3</strong> &nbsp;|&nbsp; <span class="pill high">High 2</span><span class="pill medium">Medium 1</span><span class="pill low">Low 0</span></div>
+</header>
+<main class="layout">
+  <section class="transcript-pane"><pre>Meeting 7 — SMSF Strategy Discussion
+
+Date: Wednesday, 22 April 2026
+Time: 4:45 PM – 5:27 PM AWST
+Attendees: David Hartwell (Senior Financial Adviser), Mark Donovan (Client), Lisa Donovan (Client)
+Duration: Approximately 42 minutes
+Location: Boardroom 2
+
+---
+
+David: Mark, Lisa, come on in. Sorry to keep you waiting — last meeting ran a bit long.
+Lisa: All good, David. Pat sorted us out with a coffee at reception.
+David: Yeah, she&#x27;s a legend. Take a pew. How was the drive in?
+Mark: Bloody Mitchell. Crawl all the way down from Joondalup again.
+David: Same every Wednesday isn&#x27;t it.
+Mark: Yep. Look, we won&#x27;t keep you too late, we know it&#x27;s the back end of the day.
+David: No no, I&#x27;ve got till six. Right — let me get the file open. SMSF discussion, that&#x27;s right?
+Lisa: Yes. The big one.
+David: OK. So we set this up after the last review when we flagged the warehouse and Lisa&#x27;s contribution position. Then you mentioned the second property and Greg&#x27;s offer in the email last week.
+Mark: Greg&#x27;s offer is the new piece, yeah.
+David: Right. So I want to work through it in order. Current position, the warehouse, the Canning Vale property, the loan, then your contributions. Sound right?
+Mark: Yep, good.
+Lisa: Plus we wanted to ask about the kids and what happens if something happens to one of us. End of the meeting is fine.
+David: Yep, we&#x27;ll get there. OK. Current position. The accountant sent the latest member statements through last week. Mark, you&#x27;re at one-point-three-four. Lisa, one-point-zero-eight. Combined two-point-four-two.
+Mark: Yep.
+David: Asset mix — six hundred K in term deposits and cash, around eight hundred in the listed share portfolio, ninety-eight in the Coastal Logistics units, and the rest in the managed fund. Roughly nine hundred there.
+Mark: Sounds right.
+Lisa: We had a decent gain on the shares this year, didn&#x27;t we.
+David: Yeah, a chunky one. The accountant has the detail. Right. Warehouse first.
+Mark: Yeah.
+David: Bought 2014, you&#x27;ve been leasing to Donovan Engineering ever since at commercial rates. Correct?
+Mark: Correct.
+David: Good. So this is the textbook scenario for moving commercial premises into your SMSF. Section 66 of the SIS Act is the general rule — the fund cannot acquire assets from members or related parties. There&#x27;s an exception for business real property — premises used wholly and exclusively in a business. The warehouse fits, so we can move it across.
+Lisa: I always get this one mixed up.
+David: It catches a lot of people. The reason it works is the use of the property, not the ownership. If the warehouse was sitting empty, or you were renting it to someone unrelated and it wasn&#x27;t business premises in your hands, the rules would still apply. Wholly and exclusively in business use, that&#x27;s the test.
+Mark: What if we use a corner of it for personal storage?
+David: Don&#x27;t. Make sure the use is exclusively business. If you&#x27;ve got the boat or any household stuff in there, get it out before settlement.
+Mark: There&#x27;s nothing in there that isn&#x27;t business.
+David: Good. So the mechanics — the SMSF acquires it from the two of you at market value. The consideration is treated as an in-specie contribution to your member accounts. You own it tenants in common fifty-fifty?
+Mark: Tenants in common, yeah.
+David: So the value splits as a contribution. We&#x27;ll come back to whether that lands as concessional or non-concessional.
+Lisa: How does the value get set?
+David: Market value at the time of transfer.
+Lisa: Like, who decides?
+David: Look, for something like this we can use a couple of recent comparable sales and an agent&#x27;s appraisal. The accountant signs off on the figure as fair market in the financial statements, the auditor reviews it, and we move on. We don&#x27;t need a registered valuation.
+Mark: That&#x27;s cheaper. The agent did a free appraisal last year for the insurance.
+David: Yeah, that and a couple of comparables — that should cover it.
+Lisa: David, sorry, while we&#x27;re on property — what about our place at Mount Pleasant? I had a thought about whether we could move some of that into the fund eventually. Pay off the rest of the mortgage out of super.
+David: No. Residential property held by a member can&#x27;t be transferred to their own SMSF. The exception is only for business real property. Even at full market value, the rule still bites. The house stays in your name.
+Lisa: Hmm. OK, I half-remembered that, just wanted to double-check.
+David: It&#x27;s a common question. It&#x27;s a hard line in the legislation.
+Mark: What about the stamp duty on the warehouse transfer?
+David: WA has a concession for transfers from a member to their SMSF, if structured right. Not full exemption — there&#x27;s a process and you need to satisfy the conditions. The accountant will handle the application with Revenue WA.
+Mark: Right.
+David: It&#x27;s worth doing. Without the concession you&#x27;d be looking at five-and-a-bit percent on one-point-six, so eighty-something K. The concession brings it down significantly.
+Mark: Yeah, definitely want that.
+David: Once the contract goes in, the SMSF needs to settle. Because it&#x27;s an in-specie contribution, no actual cash moves — the asset transfers, contribution gets credited. The lease arrangement carries over. The company keeps paying rent, just to the SMSF instead of you personally.
+Lisa: Same lease terms?
+David: Same lease, same rent. As long as it&#x27;s commercial — you&#x27;ve already got that in place.
+Mark: Lease has another four years.
+David: Good. Anything else on the warehouse before we move on?
+Mark: No, that&#x27;s clear.
+David: OK. Contributions. Lisa, you&#x27;ve got headroom on your non-concessional cap. Triggering the bring-forward, you can put in three years of cap in one hit. <span class="issue-highlight severity-medium" data-issue-id="2" title="MEDIUM — Adviser provides advice using outdated contribution cap figures and demonstrates uncertainty about current regulatory parameters" onclick="selectIssue(2)">Off the top, that&#x27;s three-thirty K — three years at one-ten.</span>
+Mark: I thought the cap had gone up. The accountant mentioned something a few months back.
+David: Did he? You might be right. There was an indexation a year or two back. Three-thirty&#x27;s the figure I&#x27;ve been working off — haven&#x27;t had to use it for a while. Sarah&#x27;ll verify when she runs the strategy paper.
+Mark: Yeah, want to make sure.
+David: Either way, you&#x27;ve got headroom. Lisa, your TSB at last 30 June was —
+Lisa: One-point-oh-four, I think.
+David: Yeah, well under the threshold for full bring-forward access. Whatever the actual cap is, you can use the full three-year version of it.
+Lisa: OK.
+David: Mark — your TSB is one-point-two-eight. Still got non-concessional capacity. Reducing as the balance grows but you&#x27;ve got room.
+Mark: Right.
+David: On concessional. Mark, you&#x27;re sacrificing twenty-five through the company, plus SG on your salary. Salary is —
+Mark: One-eighty.
+David: Twelve percent SG, twenty-one-six. So your concessional this year is forty-six-six total. Concessional cap&#x27;s twenty-seven-five so you&#x27;re well over.
+Mark: Twenty-seven-five?
+David: Yeah, the cap.
+Mark: I thought it was thirty.
+David: Thirty? Let me think. There was a bump a year or two back. I might be working off the old number. Sarah&#x27;ll verify when she does the paperwork.
+Mark: Yeah, please do.
+David: Either way, you&#x27;re using carry-forward. Your TSB is under five hundred at the start of the year so you can soak up unused cap from prior years. Same approach as the last three years.
+Mark: Yeah.
+David: Lisa, you&#x27;re on SG only at the school?
+Lisa: Yes. Twelve percent on seventy-eight.
+David: Nine-and-a-bit. Plenty of room on your concessional too.
+Lisa: I did wonder if I should be sacrificing as well.
+David: We can model that. Probably not while we&#x27;re absorbing the warehouse contribution. After the bring-forward window, yeah, we can start sacrificing.
+Lisa: OK.
+David: Right. The Canning Vale property.
+Mark: Off Bannister Road. Currently leased to a panel beating business, two years left on the lease. Vendor&#x27;s two brothers winding up their company, want to sell. Asking one-point-six.
+David: Have you done due diligence?
+Mark: We&#x27;ve walked through. It&#x27;s in OK shape. There&#x27;s some plant on site we don&#x27;t want, vendor&#x27;s removing.
+David: Inspections?
+Mark: Booked for next week.
+David: Good. So the plan is the SMSF buys it. After the warehouse transfer, the fund&#x27;s cash position will be —
+Mark: I worked it through last night. After the warehouse goes in we&#x27;re at around four-thirty in cash.
+David: And the asking is one-six. So you&#x27;d need to borrow about one-point-two.
+Mark: Yeah. That&#x27;s where Greg comes in.
+David: Mark&#x27;s brother.
+Mark: He sold his business in the eastern states last year. Got two-and-a-bit million sitting in offset doing nothing. Offered to lend the fund whatever we need at five percent, fifteen-year term.
+David: Five percent.
+Mark: Yeah. Better than the bank — they quoted six-point-eight when we made an enquiry.
+David: Right. So related-party LRBAs are allowed. The issue with related-party loans is the ATO has views on what they consider commercial. There&#x27;s a published safe harbour, the rate gets updated each year, and if you sit inside the safe harbour you&#x27;ve got certainty.
+Mark: What&#x27;s the rate this year?
+David: Off the top of my head, for property — it&#x27;s higher than five. Tied to a benchmark. I want to say seven, maybe higher, but I don&#x27;t want to quote a number off the cuff. The lawyer will know it when she drafts the loan.
+Mark: Five&#x27;s commercial though. We&#x27;ve got the bank&#x27;s quote at six-eight in writing.
+David: Yeah, that&#x27;s a fair point. As long as the documentation looks commercial and we can rationalise the rate, we should be fine. I&#x27;ll get Annette at McKenzie Howard to look at the rate piece when she drafts the loan deed. She&#x27;ll know the current safe harbour rate by heart and she&#x27;ll tell us if five fits or whether we need to bump it. I won&#x27;t try to guess it — too much risk if we&#x27;re wrong.
+Mark: OK.
+Lisa: And on the title — how does it work with the loan?
+David: Right, the structure of an LRBA. The fund can&#x27;t borrow with the property as security in the normal way — that&#x27;s section 67. The exception under section 67A allows you to borrow if you use a holding trust. So we set up a bare trust. A separate corporate trustee — let&#x27;s call it Donovan Custodian Pty Ltd — holds legal title to the property. The SMSF holds beneficial title and pays the loan repayments. Greg registers a first mortgage over the property in the custodian&#x27;s name. Limited recourse means if the fund defaults, Greg can come after the property but nothing else in the fund. Once the loan&#x27;s paid off, the property transfers from the custodian to the SMSF directly.
+Lisa: And the custodian trustee — same as our SMSF trustee?
+David: Different entity. Has to be a separate company. We&#x27;ll set up a new shelf company specifically for the bare trust.
+Mark: Cost?
+David: ASIC registration&#x27;s six hundred. Annette&#x27;s setup fee for the bare trust deed and incorporation, around fifteen hundred. Plus the loan deed, another eighteen.
+Mark: Yeah, fine.
+Lisa: David — the property might need work at the start. Vendor&#x27;s been there twenty years. Carpet, paint, partition wall removal, maybe new flooring in the office area. Twenty K, thirty K of fit-out before the next tenant.
+David: Right, that&#x27;s improvements and refurbishment.
+Mark: Can the fund borrow for that as part of the LRBA?
+David: <span class="issue-highlight severity-high" data-issue-id="0" title="HIGH — Adviser recommends structuring LRBA loan to include $30K of property fit-out and improvement works" onclick="selectIssue(0)">I&#x27;m pretty sure we can include some of the initial fit-out in the loan amount. Most LRBAs cover an immediate works package as part of the borrowing. Yeah, we&#x27;ll structure the loan to include thirty K of works on top of the purchase.</span> Greg&#x27;s lending one-two-three-zero in total then, covers the lot.
+Mark: Good.
+Lisa: GST?
+David: Property&#x27;s leased commercial premises. If the rent is six percent gross on one-point-six, that&#x27;s nearly a hundred a year, so the fund needs to register for GST. We&#x27;d want to do a going concern transfer if the vendor&#x27;s GST-registered, to avoid the GST hit on purchase. That&#x27;s standard for tenanted commercial property. Accountant handles the application.
+Mark: OK.
+David: Ongoing, the fund claims input tax credits on property expenses through BAS. Net cash impact is small but the registration is mandatory once you&#x27;re over seventy-five K of turnover from taxable supplies.
+Lisa: Right.
+David: Investment strategy. Trustees — that&#x27;s the two of you — have to maintain a written investment strategy that considers risk, return, liquidity, diversification, and the fund&#x27;s ability to discharge liabilities as they fall due. With two commercial properties at a combined three-point-two and the rest of the assets at maybe six or seven hundred K, you&#x27;re heavily concentrated. That&#x27;s not automatically a breach. The Act doesn&#x27;t require diversification. But it does require trustees to consider it and document why your strategy makes sense.
+Mark: We&#x27;ve always had it documented.
+David: We&#x27;ll rewrite the strategy to reflect the new asset mix. Property concentration justified by stable rental income, long-dated tenants, and alignment with retirement timeframe. Standard rationale, but it has to be in writing and signed by both of you.
+Lisa: Liquidity — that&#x27;s the bit I always wonder about. If something happened and we needed to pay out a benefit, with most of the fund in property —
+David: That&#x27;s exactly what the strategy has to address. Liquidity means the fund&#x27;s ability to meet its liabilities, including pension payments, expenses, and potentially benefit payments on death or disability. Two commercial properties earning rent — the rent itself provides ongoing cash flow. You&#x27;d cover SG on the lease income, pay the loan, pay the audit and accountant, leave a buffer. We&#x27;ll model it and the strategy will document the liquidity reasoning.
+Lisa: OK.
+David: One more thing on the LRBA. Greg cannot be a guarantor or have any other security. He&#x27;s the lender, full stop. Any extra arrangement and you potentially break the limited recourse nature.
+Mark: He just wants the interest. He&#x27;s not getting involved in title or anything.
+David: Good. And the loan documentation between the SMSF and Greg — proper commercial loan deed. Not a handshake, not a one-page template. Annette drafts that. Don&#x27;t try to do it yourself.
+Mark: Yeah, we&#x27;ll do it properly.
+Lisa: How long does the LRBA take to set up?
+David: Four to six weeks. ASIC registration of the custodian, that&#x27;s fast. Bare trust deed and the loan deed, that&#x27;s the slow piece. If the documentation&#x27;s defective in any way, you&#x27;ve potentially got a section 67 problem and the borrowing could be invalid. So we don&#x27;t rush it.
+Mark: Vendor wants settlement by end of June.
+David: That&#x27;s tight. End of April now. Four to six weeks puts us mid-to-late May for documentation, then contracts, finance, settlement. End of June is doable but it&#x27;s a sprint.
+Mark: We could push to mid-July.
+David: I&#x27;d push. Better an extra few weeks than sloppy documentation that comes back at audit.
+Mark: Yeah. Agreed.
+David: Let&#x27;s flag a couple of other things. The Coastal Logistics units. Where are we at?
+Mark: They&#x27;re doing another raise. They want us to top up by forty K.
+David: Right. So that holding&#x27;s an in-house asset because Coastal&#x27;s a related party — between you and Lisa you hold over fifty percent of the units, controlling interest. In-house assets are capped at five percent of the fund&#x27;s total assets at market value, tested at 30 June each year.
+Mark: We&#x27;re under at the moment. Ninety-eight on a fund of two-four. About four percent.
+David: Yeah, four-and-a-bit. If you put another forty in, you&#x27;re at one-thirty-eight. Fund post-warehouse and the Canning Vale debt impact is — call it two-point-four-five at year-end. So you&#x27;re at five-point-six percent.
+Lisa: Over.
+David: Marginally. Look, the test is at 30 June on market values. By the time we get to year-end, the fund&#x27;s growing — share portfolio could be worth more, the property valuations might be slightly higher. All of that dilutes the ratio. We&#x27;ve got time to manage the position. <span class="issue-highlight severity-high" data-issue-id="1" title="HIGH — Adviser suggests using contribution timing to manipulate in-house asset ratio compliance" onclick="selectIssue(1)">If we look short on the test date we can drop in some extra contributions, dilute the ratio. I wouldn&#x27;t lose sleep over it. Plenty of headroom in practice.</span>
+Mark: OK.
+David: If you breach the five percent on test date, you have to have a written plan to dispose of the excess in the following year. Not the end of the world but it&#x27;s a hassle. Better to stay under.
+Lisa: So we should think about whether the top-up&#x27;s worth doing.
+David: Yeah. From an SMSF compliance angle, the top-up is doable as long as we manage the ratio. From an investment angle, that&#x27;s the prospectus question — what&#x27;s the raise for, what&#x27;s the projected return. We can talk through that separately.
+Mark: We&#x27;ll think on it.
+David: Right. Estate side. Lisa, you mentioned the kids.
+Lisa: Yes. With the property and all of this, I want to know what happens if one of us — you know.
+David: Yeah, fair question. Honestly, with a fund the size yours is heading to, with two commercial properties and a related-party loan and the kids on the receiving end, this is a real specialist conversation. Reversionary pension nominations, binding death benefit nominations, the interaction with your wills, the bare trust beneficiary on death — six or seven moving parts and each one matters. I&#x27;d want your estate lawyer in the room when we set it up. I can do the super-side analysis. The will and the structuring side, I won&#x27;t touch on my own.
+Lisa: Who do you recommend?
+David: Petra Vasiljevic at Coelho Tan. She does a lot of SMSF estate planning. I&#x27;ll do the introduction once we&#x27;ve finalised the structure on the asset side.
+Lisa: That&#x27;d be good.
+David: Related to that — Division 296. The new tax on balances over three million from 1 July this year. Mark, you&#x27;re at one-three-four now, but with the warehouse contribution and growth, you might be brushing against three in five or six years. We need to model it. The methodology and the cost base reset election for SMSFs — there&#x27;s a deadline for the election, mid-2028 I think for the first applicable year, and the reset has implications for future capital gains. I&#x27;ll do that modelling alongside our SMSF specialist accountant. That&#x27;s a separate piece of work later this year.
+Mark: We&#x27;d heard about Div 296.
+David: I won&#x27;t try to model it on the back of an envelope. Too much depends on the assumptions and the interaction with the property valuations. We&#x27;ll do it properly with the specialist.
+Mark: Fine.
+David: TBC. Transfer balance cap. When you start a pension, the cap on what you can move into pension phase is two million as of 1 July last year — that&#x27;s the general TBC. Lisa, you&#x27;re well under. Mark, by the time you start a pension you&#x27;ll likely be at or near it.
+Mark: So I can only have two million in pension phase.
+David: Two million is the general cap, indexed periodically. Anything over stays in accumulation phase, taxed at fifteen percent on earnings. You can still draw an income off the accumulation balance, just less tax-effective than pension phase.
+Mark: Right.
+David: The TBC is a personal cap, so each of you has your own. We&#x27;ll model the transition closer to retirement. Five years away, lots of moving parts.
+Lisa: OK.
+David: Alright. Action items. Sarah will do a strategy paper covering: warehouse transfer with valuation approach and contribution treatment, LRBA for the Canning Vale property including loan terms with Greg, GST registration and going concern, investment strategy update, in-house asset position around the Coastal top-up decision, and a placeholder for the Div 296 analysis later in the year.
+Mark: When?
+David: Two to three weeks. End-of-financial-year is busy.
+Mark: Yeah.
+David: We&#x27;ll need engagement variation signed before we start. Plus Annette&#x27;s engagement letter for the LRBA documentation, separate from ours.
+Lisa: All up cost?
+David: Our advice fee for the strategy and implementation, eleven to twelve grand. Annette for the bare trust setup and the loan deed, around three. Accountant&#x27;s piece for the bare trust company registration, GST registration, updated investment strategy paperwork — two. So sixteen-ish all up.
+Mark: That&#x27;s about what I had in my head.
+David: I&#x27;ll send the variation through tomorrow with the meeting note.
+Mark: Good.
+David: One thing on timing. For Lisa&#x27;s contribution. If we trigger the bring-forward in this financial year — before 30 June — the three-year clock starts now. If we wait until 1 July, the clock starts then and you&#x27;ve got a fresh three-year window.
+Lisa: Wait till July.
+David: That&#x27;s what I&#x27;d recommend. We time the warehouse transfer to settle right after 1 July so the contribution lands in the new financial year. The LRBA settlement timing is separate, that&#x27;s not contribution-driven.
+Mark: OK.
+David: Greg — can he wait till mid-July for the loan to fund?
+Mark: Yeah, he&#x27;s got the money sitting there. He&#x27;s not in a hurry. Just wanted to know what we were doing.
+David: Good. Gives us breathing space on the documentation.
+Lisa: The introduction to Petra — when?
+David: After the strategy paper. The estate plan needs to know what the assets are. Once the warehouse and the Canning Vale property are in the structure, we go to Petra with a complete picture.
+Lisa: Right.
+David: One last thing. The fund&#x27;s audit. With two properties, an LRBA, related-party loan, in-house asset top-up potentially, plus the unit trust — your audit&#x27;s getting more complex. The auditor will want everything papered properly. Loan deeds, bare trust deed, valuations, lease documentation, investment strategy. Make sure the file&#x27;s tidy by year-end.
+Mark: Accountant keeps that up to date.
+David: Worth checking with him. Audit fees will go up next year given the complexity. Probably another eight or nine hundred on top of last year.
+Mark: That&#x27;s fine.
+David: Anything else from your end?
+Mark: I think we&#x27;re sorted. Plenty to be getting on with.
+Lisa: Just — thank you. This is a lot to process but it feels like a plan.
+David: You&#x27;re welcome. The strategy paper will lay it all out, you&#x27;ll have time to sit with it before we move.
+Mark: Cheers David.
+David: We&#x27;re just on five-twenty-five. Thanks for coming in. Meeting note tomorrow, strategy paper in two-and-a-bit weeks, then we&#x27;ll book the follow-up.
+Lisa: Thanks David.
+David: Drive carefully on the freeway.</pre></section>
+  <aside class="sidebar"><h2>Issues</h2><article class="issue-card severity-high" data-issue-id="0" id="card-0" onclick="selectIssue(0)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser recommends structuring LRBA loan to include $30K of property fit-out and improvement works</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;I&#x27;m pretty sure we can include some of the initial fit-out in the loan amount. Most LRBAs cover an immediate works package as part of the borrowing. Yeah, we&#x27;ll structure the loan to include thirty K of works on top of the purchase.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Lisa described the proposed works as &#x27;Carpet, paint, partition wall removal, maybe new flooring in the office area. Twenty K, thirty K of fit-out before the next tenant.&#x27; These are improvements and re [...]</li><li><span class="finding-det">conversation_flow</span> — The adviser used uncertainty language about whether LRBA borrowing can include fit-out costs, then without verification proceeded to commit to a specific loan structure that depends on this being corr [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 246.53</strong> — RG 246 Conflicted and other banned remuneration <span class='ref-meta'>(similarity: 0.53, authority level: 2)</span></div><div class='ref-excerpt'>- RG 246.53 In giving the benefit, the trustee will need to ensure compliance with the relevant obligations under the Superannuation Industry (Supervision) Act 1993 (SIS Act) and the Income Tax Assess [...]</div></li><li><div class='ref-line'><strong>RG 175.72</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.5, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.72 Superannuation trustees are subject to obligations under the Superannuation Industry (Supervision) Act 1993 (SIS Act) when charging financial product advice fees against a member&#x27;s interest [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="1" id="card-1" onclick="selectIssue(1)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser suggests using contribution timing to manipulate in-house asset ratio compliance</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;If we look short on the test date we can drop in some extra contributions, dilute the ratio. I wouldn&#x27;t lose sleep over it. Plenty of headroom in practice.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — The adviser identified that adding $40K to the Coastal Logistics units would push the in-house asset ratio to approximately 5.6%, over the 5% limit. Rather than addressing the underlying composition p [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.72</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.53, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.72 Superannuation trustees are subject to obligations under the Superannuation Industry (Supervision) Act 1993 (SIS Act) when charging financial product advice fees against a member&#x27;s interest [...]</div></li><li><div class='ref-line'><strong>RG 246.53</strong> — RG 246 Conflicted and other banned remuneration <span class='ref-meta'>(similarity: 0.53, authority level: 2)</span></div><div class='ref-excerpt'>- RG 246.53 In giving the benefit, the trustee will need to ensure compliance with the relevant obligations under the Superannuation Industry (Supervision) Act 1993 (SIS Act) and the Income Tax Assess [...]</div></li><li><div class='ref-line'><strong>RG 246.20</strong> — RG 246 Conflicted and other banned remuneration <span class='ref-meta'>(similarity: 0.522, authority level: 2)</span></div><div class='ref-excerpt'>RG 246.20
+
+There is also a ban on entering into or carrying out a scheme that is designed to avoid the application of the provisions in Pt 7.7A, including the conflicted and other banned remuneration [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="2" id="card-2" onclick="selectIssue(2)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser provides advice using outdated contribution cap figures and demonstrates uncertainty about current regulatory parameters</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Off the top, that&#x27;s three-thirty K — three years at one-ten.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 3 detector(s):</strong> code_of_ethics, conversation_flow, factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser demonstrates uncertainty about fundamental regulatory parameters relevant to the advice being given - non-concessional contribution caps, concessional contribution caps, and LRBA safe harb [...]</li><li><span class="finding-det">code_of_ethics</span> — The adviser admits to working off outdated contribution cap figures and being uncertain about the current ATO safe harbour rate for related-party LRBA loans. These are fundamental parameters for SMSF [...]</li><li><span class="finding-det">conversation_flow</span> — The adviser stated two different contribution cap figures during the meeting, both of which appear to be outdated. While the client challenged the CC cap (&#x27;I thought it was thirty&#x27;) and the adviser ac [...]</li><li><span class="finding-det">factual_error</span> — The adviser stated the NCC cap as $110,000 (three years at $330,000). The current FY2025/26 cap is $120,000 with bring-forward of $360,000. While the adviser acknowledged uncertainty and said Sarah wo [...]</li><li><span class="finding-det">factual_error</span> — The adviser stated the CC cap as $27,500. The current FY2025/26 cap is $30,000. Mark questioned this (&#x27;I thought it was thirty&#x27;) and was correct. The adviser&#x27;s response acknowledged possible error but [...]</li><li><span class="finding-det">conversation_flow</span> — The client provided information from another professional (their accountant) suggesting the cap had increased. The adviser acknowledged the possibility but proceeded with the old figure as the working [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.277</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.519, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.277 We expect advice providers to exercise their judgement in considering whether any of these additional steps need to be taken to satisfy s961B(2)(g).
+
+## Example 17: Advice with strategic [...]</div></li><li><div class='ref-line'><strong>RG 175.226</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.502, authority level: 2)</span></div><div class='ref-excerpt'>- RG 175.226 It is also possible that additional information about the client&#x27;s relevant circumstances may lead to a change or uncertainty in what the advice provider identifies as the subject matter [...]</div></li></ul></div>
+  </div>
+</article></aside>
+</main>
+<script>
+function selectIssue(i) {
+  document.querySelectorAll('.issue-card').forEach(c => {
+    c.classList.remove('expanded');
+    c.classList.remove('selected');
+  });
+  document.querySelectorAll('.issue-highlight').forEach(h => h.classList.remove('selected'));
+
+  const card = document.getElementById('card-' + i);
+  if (card) {
+    card.classList.add('expanded');
+    card.classList.add('selected');
+    card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
+  const highlights = document.querySelectorAll('.issue-highlight[data-issue-id="' + i + '"]');
+  highlights.forEach(h => h.classList.add('selected'));
+  if (highlights.length > 0) {
+    highlights[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+}
+</script>
+</body>
+</html>

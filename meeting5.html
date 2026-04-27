@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compliance Review — meeting5</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --high-bg: #fee2e2;
+  --high-border: #dc2626;
+  --high-bg-hover: #fecaca;
+  --med-bg: #ffedd5;
+  --med-border: #ea580c;
+  --med-bg-hover: #fed7aa;
+  --low-bg: #fef3c7;
+  --low-border: #ca8a04;
+  --low-bg-hover: #fde68a;
+  --selected-shadow: 0 0 0 2px #1f2937;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+header.page-header {
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header.page-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.summary-stats {
+  font-size: 13px;
+  color: var(--muted);
+}
+.summary-stats .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.summary-stats .pill.high { background: var(--high-bg); color: var(--high-border); }
+.summary-stats .pill.medium { background: var(--med-bg); color: var(--med-border); }
+.summary-stats .pill.low { background: var(--low-bg); color: var(--low-border); }
+main.layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  height: calc(100vh - 70px);
+}
+.transcript-pane, .sidebar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 100%;
+}
+.transcript-pane pre {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  color: var(--text);
+}
+.issue-highlight {
+  border-radius: 3px;
+  padding: 1px 2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.1s ease;
+}
+.issue-highlight.severity-high { background: var(--high-bg); border-bottom-color: var(--high-border); }
+.issue-highlight.severity-medium { background: var(--med-bg); border-bottom-color: var(--med-border); }
+.issue-highlight.severity-low { background: var(--low-bg); border-bottom-color: var(--low-border); }
+.issue-highlight.severity-high:hover { background: var(--high-bg-hover); }
+.issue-highlight.severity-medium:hover { background: var(--med-bg-hover); }
+.issue-highlight.severity-low:hover { background: var(--low-bg-hover); }
+.issue-highlight.selected {
+  box-shadow: var(--selected-shadow);
+  border-bottom-width: 3px;
+}
+.sidebar h2 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.issue-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+.issue-card:hover { background: #f9fafb; }
+.issue-card.selected { box-shadow: var(--selected-shadow); }
+.issue-card.severity-high { border-left: 4px solid var(--high-border); }
+.issue-card.severity-medium { border-left: 4px solid var(--med-border); }
+.issue-card.severity-low { border-left: 4px solid var(--low-border); }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.severity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.severity-badge.severity-high { background: var(--high-bg); color: var(--high-border); }
+.severity-badge.severity-medium { background: var(--med-bg); color: var(--med-border); }
+.severity-badge.severity-low { background: var(--low-bg); color: var(--low-border); }
+.card-summary {
+  font-weight: 500;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.card-details {
+  padding: 0 14px 14px 14px;
+  display: none;
+  border-top: 1px solid var(--border);
+  margin-top: 0;
+}
+.issue-card.expanded .card-details {
+  display: block;
+  padding-top: 12px;
+}
+.card-quote {
+  font-style: italic;
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.card-section { margin-bottom: 10px; font-size: 13px; }
+.card-section strong { color: var(--text); }
+.findings-list, .refs-list { margin: 6px 0 0 0; padding-left: 18px; font-size: 12px; }
+.findings-list li { margin-bottom: 6px; }
+.finding-det {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.refs-list li { margin-bottom: 8px; }
+.ref-line { font-size: 12px; }
+.ref-meta { color: var(--muted); font-size: 11px; }
+.ref-excerpt { color: var(--muted); font-size: 11px; margin-top: 2px; padding-left: 6px; border-left: 2px solid var(--border); }
+.not-found-note { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state .check {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.empty-state .empty-msg {
+  font-size: 14px;
+  color: var(--text);
+  max-width: 300px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <h1>Compliance Review: meeting5</h1>
+  <div class="summary-stats">Total: <strong>10</strong> &nbsp;|&nbsp; <span class="pill high">High 2</span><span class="pill medium">Medium 4</span><span class="pill low">Low 4</span></div>
+</header>
+<main class="layout">
+  <section class="transcript-pane"><pre># Meeting 5 — Test Transcript
+
+**Date:** Wednesday, 25 March 2026
+**Time:** 3:45 PM – 4:25 PM (40 minutes)
+**Location:** Adviser office, in person
+**Attendees:**
+- David Reilly (Adviser)
+- Greg Mitchell (Client, age 61)
+- Linda Mitchell (Client, age 58)
+
+*Mid-meeting — picking up from a strategy session held two weeks earlier. Pre-retirement super contribution strategy; daughter Emma&#x27;s super and Linda&#x27;s mother&#x27;s situation also on the agenda.*
+
+---
+
+David: Sorry, give me one sec, just pulling up the file from last time. There we go. Right — Greg, you were going to talk to payroll about the salary sacrifice. How&#x27;d that go?
+
+Greg: Yeah, fine. They said they can do it from the next pay run, just need the form. Question is how much.
+
+David: Okay. So just to recap — your gross is, what, 162?
+
+Greg: 162 base. Plus super. Plus a bonus when it lands, which is usually around 18 to 25.
+
+David: Right. And the SG is going in on top at 12 percent — that came in last July, just so we&#x27;re on the same page. So 12 percent of 162 is —
+
+Greg: Roughly 19 and a half thousand.
+
+David: 19,440. Yeah. <span class="issue-highlight severity-high" data-issue-id="0" title="HIGH — Adviser stated concessional contributions cap is $27,500 for FY2025/26" onclick="selectIssue(0)">And the concessional cap this year is 27,500</span>, so —
+
+Greg: Mm.
+
+David: — your room for salary sacrifice is the difference. So 27,500 less 19,440 is about 8,060. Call it 8 grand a year if you want a clean number.
+
+Greg: Eight thousand. Okay.
+
+David: That&#x27;s roughly 308 a fortnight pre-tax.
+
+Greg: And that comes out before tax, obviously.
+
+David: Yeah. You save the difference between your marginal rate and 15 percent on it. You&#x27;re at 39 cents in the dollar with the levy, so roughly 24 cents per dollar saved. On 8,000 that&#x27;s about 1,900 in tax savings a year.
+
+Greg: Right.
+
+David: Now — the only thing to flag. Your bonus. If the bonus pushes your taxable income up over the Division 293 line, you cop an extra 15 percent on the concessional contributions above that line. <span class="issue-highlight severity-medium" data-issue-id="4" title="MEDIUM — Adviser stated Division 293 income threshold is $200,000" onclick="selectIssue(4)">The Division 293 threshold&#x27;s 200,000.</span>
+
+Greg: 200?
+
+David: Yeah. So you&#x27;re at 162 base, plus the bonus —
+
+Greg: Bonus last year was 22.
+
+David: So 184. You&#x27;re under. But if the bonus is bigger this year, or if there&#x27;s any other taxable income —
+
+Linda: He had that consulting thing in October.
+
+Greg: Oh — yeah, that was about four grand.
+
+David: Four. Okay. So 184 plus 4, you&#x27;re at 188. Plus the salary sacrifice counts towards the 293 calculation as well, just to be aware. So if we&#x27;re putting in 8 of sacrifice, you&#x27;re now at 196 for 293 purposes. Still under.
+
+Greg: Cuts it fine.
+
+David: Cuts it fine. If the bonus goes up, we revisit.
+
+Greg: Got it.
+
+David: One more thing on this. The SG max contribution base — I&#x27;m fairly sure it&#x27;s around 240,000 a year of salary that SG has to be paid on. So you&#x27;re well under that, no issue there.
+
+Greg: Right.
+
+David: Okay. So 8 grand of sacrifice. I&#x27;ll put that in the file note and email you the form template tonight.
+
+Linda: Can I ask — what about the carry-forward? You mentioned that last time.
+
+David: Yeah, good. You&#x27;ve got — let me look — you had unused cap from 21/22 of about 9,000, and 22/23 of about 4,500. Those are still available because your TSB at 30 June was 480-something.
+
+Greg: Under 500.
+
+David: Under 500, so you can use carry-forward. So if a windfall comes in, you&#x27;ve got room above the 27,500. About 14 grand of room across the carry-forward years on top of this year&#x27;s cap.
+
+Greg: Okay. Park that.
+
+David: Park it. Right. Linda — the money from your aunt.
+
+Linda: 152,000. It&#x27;s in the savings account at the moment.
+
+David: 152. And we talked last time about putting it in as non-concessional. Have you had any more thought on it?
+
+Linda: Yeah. I&#x27;m comfortable with it. The question was how to structure it.
+
+David: Okay. <span class="issue-highlight severity-low" data-issue-id="6" title="LOW — Adviser stated bring-forward of $360,000 available if TSB is under $1.7 million" onclick="selectIssue(6)">So the non-concessional cap is 120 a year. You can trigger the bring-forward and do up to 360 over three years if your total super balance is under 1.7 million.</span> You&#x27;re well under, so —
+
+Linda: I thought the cap was still 110?
+
+David: It was — that was up till June 2024. Went to 120 from 1 July 2024, and stayed there.
+
+Linda: Right. Sorry.
+
+David: No, no — easy one to lose track of. So if you want to put the whole 152 in, we trigger the bring-forward, you&#x27;ve used 152 of your 360, and you&#x27;ve got 208 of headroom over the next two years if more comes through.
+
+Linda: I don&#x27;t think there&#x27;s any more coming.
+
+David: Okay. Well, the bring-forward gets triggered automatically the moment you go over the annual 120 cap, so we just need to be aware of it. If you put 152 in, you&#x27;re locked into the bring-forward window for three years.
+
+Greg: What does locked-in mean practically?
+
+David: Means the standard 120 a year doesn&#x27;t reset for Linda till 2028/29. Doesn&#x27;t matter, in your case, because you weren&#x27;t planning to do more.
+
+Linda: Right.
+
+David: While we&#x27;re on Linda — the spouse contribution offset. If Greg pops 3,000 into your account, he&#x27;d normally get an 18 percent tax offset, so 540 back. But — your assessable income — you&#x27;re earning what, 45?
+
+Linda: 44 and a half, roughly.
+
+David: Right. <span class="issue-highlight severity-low" data-issue-id="7" title="LOW — Adviser stated spouse contribution tax offset cuts out at $42,000 of spouse income" onclick="selectIssue(7)">I think the offset cuts out at 42,000 of spouse income. So Linda, you&#x27;d be over.</span>
+
+Linda: So no offset?
+
+David: No offset on a spouse contribution to you. So we&#x27;d just route any extra contributions through Greg&#x27;s salary sacrifice instead. More tax-efficient anyway.
+
+Greg: Fine.
+
+David: Okay. Emma. Did she get back to you about the super statement?
+
+Linda: She emailed it through. Hold on. (rustling) Here. AustralianSuper, balance is 11,400.
+
+David: 11,400. And she&#x27;s working — what was it — about 32 a year?
+
+Linda: 32, yeah. The library job, plus the tutoring on weekends.
+
+David: Perfect. <span class="issue-highlight severity-high" data-issue-id="1" title="HIGH — Adviser provided substantive advice to non-client Emma on co-contributions, FHSSS, and CGT discount rules" onclick="selectIssue(1)">So — co-contribution. If she puts in 1,000 of her own money as a non-concessional, the government matches 50 cents per dollar up to 500. So she puts in 1,000, gets 500 from the government on top.</span>
+
+Linda: 500. Wow.
+
+David: Yeah, it&#x27;s the best return she&#x27;ll get on a thousand bucks in her life. <span class="issue-highlight severity-low" data-issue-id="8" title="LOW — Adviser stated upper income threshold for government co-contribution is $58,445" onclick="selectIssue(8)">The thing is the upper income threshold — let me just double check — yeah, the upper threshold&#x27;s 58,445. So she&#x27;s well under, gets the full 500.</span>
+
+Greg: She&#x27;d just — she&#x27;d just transfer the money in?
+
+David: BPAY into her super account, before 30 June. The fund passes the contribution data to the ATO, the ATO works out the co-contribution after she lodges her tax return.
+
+Linda: She&#x27;d have to actually lodge her return.
+
+David: She does have to lodge.
+
+Linda: She might not if her tax is low.
+
+David: She has to lodge for the co-contribution to be paid. I&#x27;ll put that in the action items.
+
+Greg: What about — she&#x27;s looking at buying. She was asking about the First Home Super Saver thing.
+
+David: Right. <span class="issue-highlight severity-medium" data-issue-id="5" title="MEDIUM — Adviser stated FHSSS lifetime release cap is $40,000" onclick="selectIssue(5)">So FHSSS — she can withdraw voluntary contributions plus a deemed earnings amount when she&#x27;s ready to buy. The lifetime cap on what you can release is — I&#x27;m fairly certain it&#x27;s 40,000.</span>
+
+Greg: Per person?
+
+David: Per person. So if she&#x27;s serious about it she should be making voluntary contributions now, while she&#x27;s young, so they&#x27;re sitting in there ready to be released when she finds a place.
+
+Linda: Salary sacrifice or just out of her own money?
+
+David: Either works. Salary sacrifice is more tax-effective because it goes in pre-tax. Then on the way out the FHSSS withdrawal is taxed at her marginal rate less a 30 percent offset, which at her income is basically nothing.
+
+Linda: Right.
+
+David: Look — the exact tax mechanics on the withdrawal side, let me confirm in writing. I want to make sure I&#x27;m giving her the correct number rather than guessing. I&#x27;ll send a note tonight.
+
+Linda: Sure.
+
+Greg: She mentioned shares too — she&#x27;s been buying ETFs on Pearler.
+
+David: Good for her.
+
+Greg: Got something like seven or eight grand sitting in there. She was asking if the CGT discount kicks in after two years.
+
+David: I think you&#x27;re remembering an older rule — pretty sure it&#x27;s 12 months for individuals. Has been for a while.
+
+Greg: 12 months. Okay. I&#x27;ll tell her.
+
+David: 50 percent discount once she&#x27;s held them more than 12 months. Different if it&#x27;s in a company, different if it&#x27;s in super. For her it&#x27;s just 12 months.
+
+Greg: Right.
+
+David: While we&#x27;re on that — she&#x27;s got HELP debt?
+
+Linda: 38,000-ish. Came down with the 20 percent reduction last year.
+
+David: Right. She&#x27;d start paying it back once her income hits 67,000. She&#x27;s at 32 so she&#x27;s well under. Nothing to worry about.
+
+Linda: Speaking of — Mum.
+
+David: Yes. How is she?
+
+Linda: Tired. You know. The hip thing&#x27;s still flaring up. Anyway — Centrelink. She got the letter about the deeming change.
+
+David: Yeah, the freeze ended last July. So the deeming rates lifted off the artificial floor.
+
+Linda: <span class="issue-highlight severity-medium" data-issue-id="2" title="MEDIUM — Adviser confirmed client&#x27;s mother&#x27;s deeming rate information as &#x27;about right&#x27; at 2.25% without verification" onclick="selectIssue(2)">She said the upper rate is 2.25 percent now? She read it somewhere.</span>
+
+David: Yeah, around there — sounds about right. So on her financial assets above the threshold, she&#x27;s getting deemed at 2.25, which counts as income for the income test.
+
+Linda: She&#x27;s worried it&#x27;s going to push her off the part pension.
+
+David: Look — without me having her exact balances and the latest thresholds in front of me, I don&#x27;t want to speculate. Let me check her position properly and come back to you next week. If you can get me a screenshot of her latest Centrelink letter, that&#x27;d help.
+
+Linda: Yeah, I&#x27;ll ask her.
+
+David: Okay. Greg — let&#x27;s talk about you and the TTR question.
+
+Greg: Yeah. Last time you said we&#x27;d look at it today.
+
+David: Right. So you&#x27;re 61, you&#x27;ve met preservation, you can start a transition to retirement pension. The way TTR works — you keep your super in accumulation, you start a separate account-based pension stream, you draw between four and ten percent a year, and you keep working.
+
+Greg: And the income from the TTR is —
+
+David: Tax-free at your age, because you&#x27;re over 60. The earnings inside the TTR are taxed at 15 percent — same as accumulation. So the strategy is, you draw enough out of the TTR to fund a higher salary sacrifice, you replace the cash flow you&#x27;ve sacrificed, your overall tax bill comes down.
+
+Greg: Okay.
+
+David: With your numbers though — the marginal rate arbitrage isn&#x27;t huge. You&#x27;re at 39 cents. Sacrificing into super at 15 cents saves 24 cents in the dollar. So on 8 grand of sacrifice you save about 1,900.
+
+Greg: Right.
+
+David: TTR loop would let you sacrifice more, and replace the cash flow with the pension drawdown. But you&#x27;ve got the 27,500 cap. There&#x27;s a ceiling on it.
+
+Greg: So is it worth it?
+
+David: Marginal. I can model it both ways and we look at the difference. Probably 2,000 to 3,000 a year, every year, over the next four years. So 10 grand-ish over four years. Not nothing.
+
+Greg: Run the numbers.
+
+David: Will do. What I&#x27;d flag — once you&#x27;re 65 or once you tell us you&#x27;ve retired, the pension converts to retirement phase, earnings inside go to zero percent tax, and we restructure.
+
+Greg: And what&#x27;s the —
+
+Linda: What about the 2 million thing?
+
+David: The Transfer Balance Cap. Yeah. Currently 2 million. Indexed in 100,000 increments. Greg&#x27;s nowhere near it — your accumulation balance is 680?
+
+Greg: 681.
+
+David: 681, so well under. By the time you commence a retirement-phase pension you might be 750, maybe 800 if markets are kind. Still well under.
+
+Linda: When&#x27;s it next indexed?
+
+David: It went up to 2 million on 1 July 2025. The next adjustment depends on CPI. I don&#x27;t want to guess at the timing — let me check the latest projections and email you. Doesn&#x27;t affect Greg in the next four years either way.
+
+Linda: Right.
+
+Greg: Drawdown — when I do start a proper pension. What are the minimums.
+
+David: Okay. They&#x27;re age-banded. Under 65 is 4 percent. 65 to 74 is 5 percent. <span class="issue-highlight severity-medium" data-issue-id="3" title="MEDIUM — Adviser incorrectly stated minimum pension drawdown rate for ages 75-79 as 5% and created internal confusion with mixed percentages" onclick="selectIssue(3)">75 to 79 is 5 percent as well.</span> Then 80 to 84 jumps to 7. 85 to 89 is 9. 90 to 94 is 11. 95 plus is 14.
+
+Greg: Per year.
+
+David: Per year. Calculated on the balance at 1 July. So if your balance is 680 and you&#x27;re 65 to 74, the minimum is 5 percent — 4 percent of 680,000 is 27,200, but at 65 plus it&#x27;s 5 percent so 34,000.
+
+Greg: Right.
+
+David: That&#x27;s the floor. You can take more — you can take anything up to the whole balance. The minimum is what you must take to keep the pension valid.
+
+Greg: And it&#x27;s tax-free over 60.
+
+David: Tax-free over 60, yep. The 4 percent under 65 only applies to TTR or if you&#x27;ve got an early pension for some reason, which most people don&#x27;t.
+
+Greg: Right.
+
+Linda: When can I access mine?
+
+David: You&#x27;re 58 now. Preservation age is 60 for everyone born after 1 July 1964. You&#x27;re —
+
+Linda: &#x27;67.
+
+David: &#x27;67, so 60 is your preservation. So another two years before you can even touch it under preservation rules. Then you&#x27;d need a condition of release on top.
+
+Linda: And the work test.
+
+David: <span class="issue-highlight severity-low" data-issue-id="9" title="LOW — Adviser stated work test applies from age 65 for personal deductible contributions" onclick="selectIssue(9)">For your contributions specifically — pretty sure the work test kicks in from 65 onwards if you want to claim a personal deduction on a contribution.</span> Forty hours in thirty consecutive days in the financial year. So between now and 65 you&#x27;re fine, it&#x27;s not an issue.
+
+Linda: Good.
+
+David: Okay. Last bit — the Age Pension question.
+
+Linda: For me?
+
+David: For both of you eventually. Qualifying age is 67. Greg you&#x27;re 61, so six years away. Linda nine.
+
+Linda: And we won&#x27;t qualify anyway.
+
+David: Probably not initially. Combined assets — house aside, because the home&#x27;s exempt — you&#x27;ve got super, you&#x27;ve got the savings, the share portfolio, the car. The combined assessable assets for a couple homeowner cut out at 1,074,000.
+
+Greg: We&#x27;d be over.
+
+David: You&#x27;d be over at retirement. But — if you draw down through retirement, eventually you&#x27;ll come into the part pension, and then the full pension. Most of our retired clients end up on at least the part pension by their late 70s.
+
+Linda: Right.
+
+David: Okay. Action items. Greg — sacrifice form for 8 grand a year, I&#x27;ll send the template. Linda — confirm with Greg whether you want the full 152 in as a bring-forward, or split it. Emma — make a 1,000 voluntary contribution before 30 June for the co-contribution, and lodge her tax return. I&#x27;ll send a note on the FHSSS mechanics. I&#x27;ll come back to you on your mum&#x27;s Centrelink position next week. And I&#x27;ll model the TTR scenario for Greg over four years and we&#x27;ll meet again in three weeks to look at it.
+
+Greg: Three weeks.
+
+David: Three weeks. Trish&#x27;ll send a calendar invite.
+
+Linda: Thanks, David.
+
+Greg: Cheers.
+
+David: Drive safe. It&#x27;s started raining out there.
+
+Greg: Has it? Beautiful.
+
+(door closes)
+
+---
+
+*End of meeting.*</pre></section>
+  <aside class="sidebar"><h2>Issues</h2><article class="issue-card severity-high" data-issue-id="0" id="card-0" onclick="selectIssue(0)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser stated concessional contributions cap is $27,500 for FY2025/26</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;And the concessional cap this year is 27,500&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser confidently stated the CC cap as $27,500, which was the FY2023/24 and FY2022/23 cap. The current FY2025/26 cap is $30,000. This error directly limits Greg&#x27;s salary sacrifice calculation to [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-high" data-issue-id="1" id="card-1" onclick="selectIssue(1)">
+  <header class="card-header">
+    <span class="severity-badge severity-high">HIGH</span>
+    <span class="card-summary">Adviser provided substantive advice to non-client Emma on co-contributions, FHSSS, and CGT discount rules</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;So — co-contribution. If she puts in 1,000 of her own money as a non-concessional, the government matches 50 cents per dollar up to 500. So she puts in 1,000, gets 500 from the government on top.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Emma is the clients&#x27; daughter, not an engaged client herself. The adviser provides specific, actionable recommendations about Emma&#x27;s super contribution strategy — recommending she make a $1,000 volunt [...]</li><li><span class="finding-det">rule_match</span> — The adviser provides specific recommendations about Emma&#x27;s use of the First Home Super Saver Scheme, including advising that &#x27;she should be making voluntary contributions now, while she&#x27;s young, so th [...]</li><li><span class="finding-det">rule_match</span> — The adviser provides specific tax advice about Emma&#x27;s personal share investments, confirming the CGT discount rules apply to her ETF holdings after 12 months. While this is a general tax principle, th [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.684, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.50</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.683, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.50 Retail clients rely on personal advice and may suffer significant loss if the advice is not of good quality. For this reason, Div 2 of Pt 7.7A imposes specific obligations-collectively ref [...]</div></li><li><div class='ref-line'><strong>RG 175.162</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.674, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.162 When providing personal advice to a client, an advice provider must act in the best interests of the client in relation to that advice: see s961B(1). We refer to this as the &#x27;best interests [...]</div></li></ul></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="2" id="card-2" onclick="selectIssue(2)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser confirmed client&#x27;s mother&#x27;s deeming rate information as &#x27;about right&#x27; at 2.25% without verification</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;Linda: &#x27;She said the upper rate is 2.25 percent now? She read it somewhere.&#x27;&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> conversation_flow</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The client relayed information from her mother about the deeming rate being 2.25%. The adviser confirmed this as &#x27;about right&#x27; and proceeded to use 2.25% in his explanation. The reference shows the up [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="3" id="card-3" onclick="selectIssue(3)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser incorrectly stated minimum pension drawdown rate for ages 75-79 as 5% and created internal confusion with mixed percentages</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;David: &#x27;75 to 79 is 5 percent as well.&#x27;&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The adviser stated 75-79 minimum drawdown is 5%, but the reference shows 75-79 is 6%. Additionally, in the same passage, the adviser creates internal confusion by referencing both 4% and 5% when expla [...]</li><li><span class="finding-det">factual_error</span> — The adviser stated the 75-79 age bracket minimum as 5% when it is actually 6%. This is a future planning error that would not affect Greg&#x27;s immediate decisions but provides incorrect information for l [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="4" id="card-4" onclick="selectIssue(4)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser stated Division 293 income threshold is $200,000</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;The Division 293 threshold&#x27;s 200,000.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser stated the Division 293 threshold as $200,000 when it is actually $250,000. While this error made Greg unnecessarily cautious about his bonus pushing him over the threshold, it did not cau [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-medium" data-issue-id="5" id="card-5" onclick="selectIssue(5)">
+  <header class="card-header">
+    <span class="severity-badge severity-medium">MEDIUM</span>
+    <span class="card-summary">Adviser stated FHSSS lifetime release cap is $40,000</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;So FHSSS — she can withdraw voluntary contributions plus a deemed earnings amount when she&#x27;s ready to buy. The lifetime cap on what you can release is — I&#x27;m fairly certain it&#x27;s 40,000.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedge language (&#x27;I&#x27;m fairly certain&#x27;) but proceeded with $40,000 as the cap when the correct lifetime cap is $50,000. This understates Emma&#x27;s potential FHSSS capacity by $10,000, whic [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="6" id="card-6" onclick="selectIssue(6)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Adviser stated bring-forward of $360,000 available if TSB is under $1.7 million</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;So the non-concessional cap is 120 a year. You can trigger the bring-forward and do up to 360 over three years if your total super balance is under 1.7 million.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser stated the threshold as $1.7 million when the correct threshold for the full $360,000 bring-forward is TSB &lt; $1.76 million. Since Linda is &#x27;well under&#x27; either threshold, this error would n [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="7" id="card-7" onclick="selectIssue(7)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Adviser stated spouse contribution tax offset cuts out at $42,000 of spouse income</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;I think the offset cuts out at 42,000 of spouse income. So Linda, you&#x27;d be over.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedge language (&#x27;I think&#x27;) but stated the cut-out as $42,000 when it is actually $40,000. Since Linda earns $44,500, she is over either threshold and would not qualify for the offset [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="8" id="card-8" onclick="selectIssue(8)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Adviser stated upper income threshold for government co-contribution is $58,445</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;The thing is the upper income threshold — let me just double check — yeah, the upper threshold&#x27;s 58,445. So she&#x27;s well under, gets the full 500.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser stated the upper threshold as $58,445 after appearing to check, when the correct figure is $62,488. Since Emma earns $32,000, she is well under either threshold and qualifies for the full [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article>
+<article class="issue-card severity-low" data-issue-id="9" id="card-9" onclick="selectIssue(9)">
+  <header class="card-header">
+    <span class="severity-badge severity-low">LOW</span>
+    <span class="card-summary">Adviser stated work test applies from age 65 for personal deductible contributions</span>
+  </header>
+  <div class="card-details">
+    
+    <blockquote class="card-quote">&ldquo;For your contributions specifically — pretty sure the work test kicks in from 65 onwards if you want to claim a personal deduction on a contribution.&rdquo;</blockquote>
+    <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedge language (&#x27;pretty sure&#x27;) but stated the work test applies from age 65 when it actually applies from age 67 to 74 for personal deductible contributions. Since Linda is 58, this d [...]</li></ul></div>
+    <div class="card-section"><strong>Regulatory references:</strong></div>
+  </div>
+</article></aside>
+</main>
+<script>
+function selectIssue(i) {
+  document.querySelectorAll('.issue-card').forEach(c => {
+    c.classList.remove('expanded');
+    c.classList.remove('selected');
+  });
+  document.querySelectorAll('.issue-highlight').forEach(h => h.classList.remove('selected'));
+
+  const card = document.getElementById('card-' + i);
+  if (card) {
+    card.classList.add('expanded');
+    card.classList.add('selected');
+    card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
+  const highlights = document.querySelectorAll('.issue-highlight[data-issue-id="' + i + '"]');
+  highlights.forEach(h => h.classList.add('selected'));
+  if (highlights.length > 0) {
+    highlights[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+}
+</script>
+</body>
+</html>
