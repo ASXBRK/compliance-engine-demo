@@ -172,6 +172,7 @@ main.layout {
   padding: 1px 5px;
   border-radius: 3px;
 }
+.finding-text { white-space: pre-wrap; }
 .refs-list li { margin-bottom: 8px; }
 .ref-line { font-size: 12px; }
 .ref-meta { color: var(--muted); font-size: 11px; }
@@ -475,8 +476,8 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;The first fifty thousand for a couple deems at the lower rate&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser significantly understated the couple deeming threshold. The reference shows $106,200 for couples, not $50,000. This is a material error that could mislead clients about their expected deem [...]</li><li><span class="finding-det">conversation_flow</span> — This is a flow-pattern issue because the adviser made a statement about deeming thresholds, David engaged with it (&#x27;That&#x27;s all of our financial assets?&#x27;), and the adviser confirmed without correction. [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser significantly understated the couple deeming threshold. The reference shows $106,200 for couples, not $50,000. This is a material error that could mislead clients about their expected deemed income and Age Pension entitlements.</span></li><li><span class="finding-det">conversation_flow</span> — <span class="finding-text">This is a flow-pattern issue because the adviser made a statement about deeming thresholds, David engaged with it (&#x27;That&#x27;s all of our financial assets?&#x27;), and the adviser confirmed without correction. The $50,000 figure stated is significantly different from the $106,200 reference figure. This affects the Age Pension planning discussion. However, as instructed, I note the pattern - the adviser stated a figure, the client engaged, and no verification occurred - rather than judging the factual accuracy, which is for another detector.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-high" data-issue-id="1" id="card-1" onclick="selectIssue(1)">
@@ -488,7 +489,7 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;My take, and we should run the numbers properly — selling the unit and using the proceeds to pay the RAD probably makes sense. It eliminates the DAP, it converts an asset that&#x27;s going to start counting against her Age Pension into a refundable deposit that comes back to the estate. And it removes th&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Tom provides a specific recommendation about what Margaret (David&#x27;s mother) should do with her property and finances - sell the unit and pay the RAD. Margaret is not engaged as a client; David and Sus [...]</li><li><span class="finding-det">rule_match</span> — This is a continuation of the substantive advice about Margaret&#x27;s financial strategy, providing specific numbers and options for how to structure her accommodation payment. Tom is essentially advising [...]</li></ul></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — <span class="finding-text">Tom provides a specific recommendation about what Margaret (David&#x27;s mother) should do with her property and finances - sell the unit and pay the RAD. Margaret is not engaged as a client; David and Susan are the clients. While Tom does later acknowledge &#x27;Anything we put in writing as a recommendation on her behalf, we&#x27;d really need her in the room or her engaged as a client in her own right,&#x27; this acknowledgment comes AFTER he has already provided the substantive strategic recommendation. The advice about selling the unit to pay the RAD is specific, actionable personal advice about Margaret&#x27;s financial affairs given without her being engaged as a client.</span></li><li><span class="finding-det">rule_match</span> — <span class="finding-text">This is a continuation of the substantive advice about Margaret&#x27;s financial strategy, providing specific numbers and options for how to structure her accommodation payment. Tom is essentially advising David on what Margaret should do with her assets (the unit sale proceeds of $620k to fund a $650k RAD), which constitutes personal advice about a third party who is not engaged as a client.</span></li></ul></div>
     <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.684, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.50</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.683, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.50 Retail clients rely on personal advice and may suffer significant loss if the advice is not of good quality. For this reason, Div 2 of Pt 7.7A imposes specific obligations-collectively ref [...]</div></li><li><div class='ref-line'><strong>RG 175.162</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.674, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.162 When providing personal advice to a client, an advice provider must act in the best interests of the client in relation to that advice: see s961B(1). We refer to this as the &#x27;best interests [...]</div></li></ul></div>
   </div>
 </article>
@@ -501,8 +502,8 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;I&#x27;m not a hundred per cent sure on the latest figure but I think it&#x27;s around thirty-two thousand a year, with a lifetime cap somewhere in the high seventies&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The adviser expressed explicit uncertainty about the means-tested care fee caps (&#x27;I&#x27;m not a hundred per cent sure&#x27;), then proceeded to recommend a strategy (sell unit, pay RAD) that depends on underst [...]</li><li><span class="finding-det">factual_error</span> — The adviser explicitly expressed uncertainty (&#x27;not a hundred per cent sure&#x27;, &#x27;I think&#x27;). The figures stated were understated - annual cap is $35,238.11 (not ~$32k) and lifetime cap is $84,571.66 (not [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — <span class="finding-text">The adviser expressed explicit uncertainty about the means-tested care fee caps (&#x27;I&#x27;m not a hundred per cent sure&#x27;), then proceeded to recommend a strategy (sell unit, pay RAD) that depends on understanding how these fees interact with Margaret&#x27;s assets. While the adviser does mention running numbers properly and bringing in Janelle, he still commits to a directional recommendation (&#x27;probably makes sense&#x27;) in the meeting based on unverified figures. The reference shows the annual cap is $35,238.11 and lifetime cap is $84,571.66 for post-1 Jul 2014 to 31 Oct 2025 residents, though new rules apply from 1 Nov 2025. The pattern fires because uncertainty was followed by strategic recommendation without verification.</span></li><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser explicitly expressed uncertainty (&#x27;not a hundred per cent sure&#x27;, &#x27;I think&#x27;). The figures stated were understated - annual cap is $35,238.11 (not ~$32k) and lifetime cap is $84,571.66 (not &#x27;high seventies&#x27;). However, the adviser appropriately hedged this statement, reducing the severity.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-medium" data-issue-id="3" id="card-3" onclick="selectIssue(3)">
@@ -514,8 +515,8 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;at sixty-seven, which you&#x27;ll be in October, the legislated minimum is six per cent&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser confidently stated the minimum drawdown at age 67 is 6%, but the reference shows the 65-74 age bracket has a 5% minimum. The 6% rate applies to ages 75-79.</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser confidently stated the minimum drawdown at age 67 is 6%, but the reference shows the 65-74 age bracket has a 5% minimum. The 6% rate applies to ages 75-79.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-medium" data-issue-id="4" id="card-4" onclick="selectIssue(4)">
@@ -527,8 +528,8 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;The maximum a provider can charge without seeking approval is, last I looked, around five-fifty thousand&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedged language (&#x27;last I looked, around&#x27;) but significantly understated the threshold. The pre-reform figure was $758,627 and the post-1 Nov 2025 figure is $750,000 - both well above [...]</li><li><span class="finding-det">conversation_flow</span> — The adviser hedges with &#x27;last I looked&#x27; about the $550,000 threshold, which affects whether the $650,000 quoted price is unusual or expected. The reference shows this figure changed with November 2025 [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser used hedged language (&#x27;last I looked, around&#x27;) but significantly understated the threshold. The pre-reform figure was $758,627 and the post-1 Nov 2025 figure is $750,000 - both well above the stated $550,000. This could affect decisions about accommodation costs.</span></li><li><span class="finding-det">conversation_flow</span> — <span class="finding-text">The adviser hedges with &#x27;last I looked&#x27; about the $550,000 threshold, which affects whether the $650,000 quoted price is unusual or expected. The reference shows this figure changed with November 2025 reforms to $750,000. While the adviser does mention the reforms and defers detailed advice to Janelle, the uncertainty about the threshold was not resolved before discussing the strategy. Severity is low because the adviser does appropriately caveat and defer the formal advice.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-low" data-issue-id="5" id="card-5" onclick="selectIssue(5)">
@@ -540,8 +541,8 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;For a homeowner couple, the full pension assets cut-out is around four-seventy thousand of assessable assets, and the part-pension cut-off is around one-point-zero-six million&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedged language (&#x27;around&#x27;) but understated both thresholds. Full pension threshold is $481,500 (not ~$470k) and cut-out is $1,074,000 (not ~$1.06m). The differences are relatively min [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser used hedged language (&#x27;around&#x27;) but understated both thresholds. Full pension threshold is $481,500 (not ~$470k) and cut-out is $1,074,000 (not ~$1.06m). The differences are relatively minor and the adviser used approximate language, but the figures were still understated.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-low" data-issue-id="6" id="card-6" onclick="selectIssue(6)">
@@ -553,8 +554,8 @@ Tom: Take care, both of you. Talk in a few days.</pre></section>
     
     <blockquote class="card-quote">&ldquo;And you&#x27;re, what, sixty-four now?&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> code_of_ethics</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — The adviser had incorrect information recorded about Susan&#x27;s age, believing she was already 64 when she was still 63. While he corrected himself during the meeting, this indicates the client records w [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">code_of_ethics</span> — <span class="finding-text">The adviser had incorrect information recorded about Susan&#x27;s age, believing she was already 64 when she was still 63. While he corrected himself during the meeting, this indicates the client records were not accurate. This is a minor record-keeping error but demonstrates a failure to maintain accurate records.</span></li></ul></div>
+    
   </div>
 </article></aside>
 </main>

@@ -172,6 +172,7 @@ main.layout {
   padding: 1px 5px;
   border-radius: 3px;
 }
+.finding-text { white-space: pre-wrap; }
 .refs-list li { margin-bottom: 8px; }
 .ref-line { font-size: 12px; }
 .ref-meta { color: var(--muted); font-size: 11px; }
@@ -533,8 +534,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;And the concessional cap this year is 27,500&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser confidently stated the CC cap as $27,500, which was the FY2023/24 and FY2022/23 cap. The current FY2025/26 cap is $30,000. This error directly limits Greg&#x27;s salary sacrifice calculation to [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser confidently stated the CC cap as $27,500, which was the FY2023/24 and FY2022/23 cap. The current FY2025/26 cap is $30,000. This error directly limits Greg&#x27;s salary sacrifice calculation to $8,060 when he actually has approximately $10,560 of headroom ($30,000 - $19,440), resulting in approximately $2,500 of foregone concessional contribution capacity and associated tax savings.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-high" data-issue-id="1" id="card-1" onclick="selectIssue(1)">
@@ -546,7 +547,7 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;So — co-contribution. If she puts in 1,000 of her own money as a non-concessional, the government matches 50 cents per dollar up to 500. So she puts in 1,000, gets 500 from the government on top.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> rule_match</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — Emma is the clients&#x27; daughter, not an engaged client herself. The adviser provides specific, actionable recommendations about Emma&#x27;s super contribution strategy — recommending she make a $1,000 volunt [...]</li><li><span class="finding-det">rule_match</span> — The adviser provides specific recommendations about Emma&#x27;s use of the First Home Super Saver Scheme, including advising that &#x27;she should be making voluntary contributions now, while she&#x27;s young, so th [...]</li><li><span class="finding-det">rule_match</span> — The adviser provides specific tax advice about Emma&#x27;s personal share investments, confirming the CGT discount rules apply to her ETF holdings after 12 months. While this is a general tax principle, th [...]</li></ul></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">rule_match</span> — <span class="finding-text">Emma is the clients&#x27; daughter, not an engaged client herself. The adviser provides specific, actionable recommendations about Emma&#x27;s super contribution strategy — recommending she make a $1,000 voluntary contribution before 30 June to obtain the government co-contribution. This is personal advice about what Emma should do with her money, delivered through her parents rather than through a proper client engagement with Emma herself.</span></li><li><span class="finding-det">rule_match</span> — <span class="finding-text">The adviser provides specific recommendations about Emma&#x27;s use of the First Home Super Saver Scheme, including advising that &#x27;she should be making voluntary contributions now, while she&#x27;s young, so they&#x27;re sitting in there ready to be released when she finds a place.&#x27; This is personal financial advice about a third party&#x27;s contribution strategy without Emma being engaged as a client.</span></li><li><span class="finding-det">rule_match</span> — <span class="finding-text">The adviser provides specific tax advice about Emma&#x27;s personal share investments, confirming the CGT discount rules apply to her ETF holdings after 12 months. While this is a general tax principle, the adviser is applying it specifically to Emma&#x27;s circumstances (&#x27;For her it&#x27;s just 12 months&#x27;) and instructing Greg to convey this to Emma (&#x27;I&#x27;ll tell her&#x27;). This crosses into personal advice territory for a non-client.</span></li></ul></div>
     <div class="card-section"><strong>Regulatory references:</strong><ul class='refs-list'><li><div class='ref-line'><strong>RG 175.279</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.684, authority level: 2)</span></div><div class='ref-excerpt'>| RG 175.279 | Personal advice must only be provided if it would be reasonable to conclude that the advice is appropriate to the client, assuming that the best interests duty-or modified best interest [...]</div></li><li><div class='ref-line'><strong>RG 244.50</strong> — RG 244 Giving information, general advice and scal [...] <span class='ref-meta'>(similarity: 0.683, authority level: 2)</span></div><div class='ref-excerpt'>- RG 244.50 Retail clients rely on personal advice and may suffer significant loss if the advice is not of good quality. For this reason, Div 2 of Pt 7.7A imposes specific obligations-collectively ref [...]</div></li><li><div class='ref-line'><strong>RG 175.162</strong> — RG 175 AFS licensing: Financial product advisers—C [...] <span class='ref-meta'>(similarity: 0.674, authority level: 2)</span></div><div class='ref-excerpt'>RG 175.162 When providing personal advice to a client, an advice provider must act in the best interests of the client in relation to that advice: see s961B(1). We refer to this as the &#x27;best interests [...]</div></li></ul></div>
   </div>
 </article>
@@ -559,8 +560,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;Linda: &#x27;She said the upper rate is 2.25 percent now? She read it somewhere.&#x27;&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> conversation_flow</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The client relayed information from her mother about the deeming rate being 2.25%. The adviser confirmed this as &#x27;about right&#x27; and proceeded to use 2.25% in his explanation. The reference shows the up [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — <span class="finding-text">The client relayed information from her mother about the deeming rate being 2.25%. The adviser confirmed this as &#x27;about right&#x27; and proceeded to use 2.25% in his explanation. The reference shows the upper deeming rate is 2.75% (not 2.25%). The adviser failed to verify the figure before confirming it and building advice around it. This is a flow-pattern issue: client asserts a figure, adviser confirms without checking, advice proceeds on that basis.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-medium" data-issue-id="3" id="card-3" onclick="selectIssue(3)">
@@ -572,8 +573,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;David: &#x27;75 to 79 is 5 percent as well.&#x27;&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 2 detector(s):</strong> conversation_flow, factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — The adviser stated 75-79 minimum drawdown is 5%, but the reference shows 75-79 is 6%. Additionally, in the same passage, the adviser creates internal confusion by referencing both 4% and 5% when expla [...]</li><li><span class="finding-det">factual_error</span> — The adviser stated the 75-79 age bracket minimum as 5% when it is actually 6%. This is a future planning error that would not affect Greg&#x27;s immediate decisions but provides incorrect information for l [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">conversation_flow</span> — <span class="finding-text">The adviser stated 75-79 minimum drawdown is 5%, but the reference shows 75-79 is 6%. Additionally, in the same passage, the adviser creates internal confusion by referencing both 4% and 5% when explaining the calculation for Greg at age 65-74. While the 65-74 band at 5% is correct per the reference, stating 75-79 as also 5% contradicts the actual rate structure. This creates an internally inconsistent picture of the drawdown rules within the same explanation.</span></li><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser stated the 75-79 age bracket minimum as 5% when it is actually 6%. This is a future planning error that would not affect Greg&#x27;s immediate decisions but provides incorrect information for long-term retirement income planning.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-medium" data-issue-id="4" id="card-4" onclick="selectIssue(4)">
@@ -585,8 +586,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;The Division 293 threshold&#x27;s 200,000.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser stated the Division 293 threshold as $200,000 when it is actually $250,000. While this error made Greg unnecessarily cautious about his bonus pushing him over the threshold, it did not cau [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser stated the Division 293 threshold as $200,000 when it is actually $250,000. While this error made Greg unnecessarily cautious about his bonus pushing him over the threshold, it did not cause direct financial harm as he remains well under either threshold. However, the incorrect information could cause unwarranted concern or influence future decisions.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-medium" data-issue-id="5" id="card-5" onclick="selectIssue(5)">
@@ -598,8 +599,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;So FHSSS — she can withdraw voluntary contributions plus a deemed earnings amount when she&#x27;s ready to buy. The lifetime cap on what you can release is — I&#x27;m fairly certain it&#x27;s 40,000.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedge language (&#x27;I&#x27;m fairly certain&#x27;) but proceeded with $40,000 as the cap when the correct lifetime cap is $50,000. This understates Emma&#x27;s potential FHSSS capacity by $10,000, whic [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser used hedge language (&#x27;I&#x27;m fairly certain&#x27;) but proceeded with $40,000 as the cap when the correct lifetime cap is $50,000. This understates Emma&#x27;s potential FHSSS capacity by $10,000, which could influence her contribution strategy for home purchase savings.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-low" data-issue-id="6" id="card-6" onclick="selectIssue(6)">
@@ -611,8 +612,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;So the non-concessional cap is 120 a year. You can trigger the bring-forward and do up to 360 over three years if your total super balance is under 1.7 million.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser stated the threshold as $1.7 million when the correct threshold for the full $360,000 bring-forward is TSB &lt; $1.76 million. Since Linda is &#x27;well under&#x27; either threshold, this error would n [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser stated the threshold as $1.7 million when the correct threshold for the full $360,000 bring-forward is TSB &lt; $1.76 million. Since Linda is &#x27;well under&#x27; either threshold, this error would not affect the advice outcome, but the specific figure cited is incorrect.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-low" data-issue-id="7" id="card-7" onclick="selectIssue(7)">
@@ -624,8 +625,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;I think the offset cuts out at 42,000 of spouse income. So Linda, you&#x27;d be over.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedge language (&#x27;I think&#x27;) but stated the cut-out as $42,000 when it is actually $40,000. Since Linda earns $44,500, she is over either threshold and would not qualify for the offset [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser used hedge language (&#x27;I think&#x27;) but stated the cut-out as $42,000 when it is actually $40,000. Since Linda earns $44,500, she is over either threshold and would not qualify for the offset regardless. The conclusion is correct even though the specific threshold cited is wrong.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-low" data-issue-id="8" id="card-8" onclick="selectIssue(8)">
@@ -637,8 +638,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;The thing is the upper income threshold — let me just double check — yeah, the upper threshold&#x27;s 58,445. So she&#x27;s well under, gets the full 500.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser stated the upper threshold as $58,445 after appearing to check, when the correct figure is $62,488. Since Emma earns $32,000, she is well under either threshold and qualifies for the full [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser stated the upper threshold as $58,445 after appearing to check, when the correct figure is $62,488. Since Emma earns $32,000, she is well under either threshold and qualifies for the full co-contribution regardless. The advice outcome is unaffected but the specific figure is incorrect.</span></li></ul></div>
+    
   </div>
 </article>
 <article class="issue-card severity-low" data-issue-id="9" id="card-9" onclick="selectIssue(9)">
@@ -650,8 +651,8 @@ Greg: Has it? Beautiful.
     
     <blockquote class="card-quote">&ldquo;For your contributions specifically — pretty sure the work test kicks in from 65 onwards if you want to claim a personal deduction on a contribution.&rdquo;</blockquote>
     <div class="card-section"><strong>Engages 1 detector(s):</strong> factual_error</div>
-    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — The adviser used hedge language (&#x27;pretty sure&#x27;) but stated the work test applies from age 65 when it actually applies from age 67 to 74 for personal deductible contributions. Since Linda is 58, this d [...]</li></ul></div>
-    <div class="card-section"><strong>Regulatory references:</strong></div>
+    <div class="card-section"><strong>Findings:</strong><ul class='findings-list'><li><span class="finding-det">factual_error</span> — <span class="finding-text">The adviser used hedge language (&#x27;pretty sure&#x27;) but stated the work test applies from age 65 when it actually applies from age 67 to 74 for personal deductible contributions. Since Linda is 58, this does not affect her immediate situation, but the specific age trigger is incorrect.</span></li></ul></div>
+    
   </div>
 </article></aside>
 </main>
